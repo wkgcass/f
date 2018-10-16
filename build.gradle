@@ -1,9 +1,11 @@
 plugins {
     id 'java'
+    id 'maven'
+    id 'signing'
 }
 
 group 'net.cassite'
-version '0.0.1-SNAPSHOT'
+version '0.1.0'
 
 sourceCompatibility = 1.8
 
@@ -14,4 +16,62 @@ repositories {
 dependencies {
     compile 'io.vertx:vertx-core:3.5.3'
     testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            def deploy_user = System.getenv('DEPLOY_USER')
+            def deploy_pass = System.getenv('DEPLOY_PASS')
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: deploy_user, password: deploy_pass)
+            }
+
+            pom.project {
+                name 'f'
+                packaging 'jar'
+                description 'a library to write async vert.x code similar as using java syntax'
+                url 'https://github.com/wkgcass/f'
+                scm {
+                    url 'https://github.com/wkgcass/f'
+                    connection 'scm:git:https://github.com/wkgcass/f.git'
+                    developerConnection 'scm:git:https://github.com/wkgcass/f.git'
+                }
+                licenses {
+                    license {
+                        name 'MIT LICENSE'
+                        url 'https://github.com/wkgcass/f/blob/master/LICENSE/'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'wkgcass'
+                        email 'wkgcass@hotmail.com'
+                    }
+                }
+            }
+        }
+    }
 }
