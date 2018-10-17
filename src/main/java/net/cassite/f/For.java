@@ -43,8 +43,7 @@ public class For {
                 return Future.succeededFuture();
             T t = ite.next();
             return func.apply(t).map(r -> {
-                if (r == null) return null;
-                results.add(r);
+                if (r != null) results.add(r);
                 return handle(results, func);
             });
         }

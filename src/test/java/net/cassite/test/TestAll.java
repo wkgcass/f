@@ -527,4 +527,49 @@ public class TestAll {
             Thread.sleep(1);
         }
     }
+
+    @Test
+    public void forLoopNull() {
+        int[] i = {0};
+        For.init(0).condSync(c -> c.i < 10).incrSync(c -> ++c.i).yield(c -> {
+            if (c.i % 3 == 0) return Future.succeededFuture();
+            return Future.succeededFuture(c.i);
+        }).map(list -> {
+            assertEquals(Arrays.asList(1, 2, 4, 5, 7, 8), list);
+            ++i[0];
+            return null;
+        }).setHandler(assertOk());
+        assertEquals(1, i[0]);
+    }
+
+    @Test
+    public void forEachNull() {
+        int[] ii = {0};
+        For.each(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)).yield(i -> {
+            if (i % 3 == 0) return Future.succeededFuture();
+            return Future.succeededFuture(i);
+        }).map(list -> {
+            assertEquals(Arrays.asList(1, 2, 4, 5, 7, 8), list);
+            ++ii[0];
+            return null;
+        }).setHandler(assertOk());
+        assertEquals(1, ii[0]);
+    }
+
+    @Test
+    public void whileNull() {
+        int[] i = {0};
+        int[] current = {0};
+        While.cond(() -> current[0] < 10).yield(() -> {
+            int n = current[0];
+            ++current[0];
+            if (n % 3 == 0) return Future.succeededFuture();
+            return Future.succeededFuture(n);
+        }).map(list -> {
+            assertEquals(Arrays.asList(1, 2, 4, 5, 7, 8), list);
+            ++i[0];
+            return null;
+        }).setHandler(assertOk());
+        assertEquals(1, i[0]);
+    }
 }

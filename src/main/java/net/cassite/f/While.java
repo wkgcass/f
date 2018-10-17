@@ -35,8 +35,8 @@ public class While {
             return condition.get().compose(b -> {
                 if (!b) return Future.succeededFuture();
                 return func.get().map(r -> {
-                    if (r == null) return null;
-                    return results.add(r);
+                    if (r != null) results.add(r);
+                    return null;
                 }).compose(v -> handle(results, func));
             });
         }
