@@ -31,7 +31,7 @@ public class While {
             return handle(results, func).map(v -> results);
         }
 
-        private <R> Future<List<R>> handle(List<R> results, Supplier<Future<R>> func) {
+        private <R> Future<Object> handle(List<R> results, Supplier<Future<R>> func) {
             return condition.get().compose(b -> {
                 if (!b) return Future.succeededFuture();
                 return func.get().map(r -> {

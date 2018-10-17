@@ -38,11 +38,11 @@ public class For {
             return handle(results, func).map(v -> results);
         }
 
-        private <R> Future<?> handle(List<R> results, Function<T, Future<R>> func) {
+        private <R> Future<Object> handle(List<R> results, Function<T, Future<R>> func) {
             if (!ite.hasNext())
                 return Future.succeededFuture();
             T t = ite.next();
-            return func.apply(t).map(r -> {
+            return func.apply(t).compose(r -> {
                 if (r != null) results.add(r);
                 return handle(results, func);
             });

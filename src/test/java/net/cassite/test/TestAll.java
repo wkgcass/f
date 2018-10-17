@@ -505,17 +505,27 @@ public class TestAll {
         Vertx vertx = Vertx.vertx();
 
         Try.code(() -> {
-            assertEquals(0, step[0]++);
             Future<String> fu = Future.future();
-            vertx.setTimer(1, l -> fu.fail(new Exception("a")));
+            vertx.setTimer(10, l -> {
+                assertEquals(0, step[0]++);
+                fu.fail(new Exception("a"));
+            });
             return fu;
         }).except(Throwable.class, t -> {
-            assertEquals(1, step[0]++);
             assertEquals("a", t.getMessage());
-            return Future.succeededFuture("x");
+            Future<String> fu = Future.future();
+            vertx.setTimer(5, l -> {
+                assertEquals(1, step[0]++);
+                fu.complete("x");
+            });
+            return fu;
         }).composeFinally(() -> {
-            assertEquals(2, step[0]++);
-            return Future.succeededFuture();
+            Future<String> fu = Future.future();
+            vertx.setTimer(1, l -> {
+                assertEquals(2, step[0]++);
+                fu.complete();
+            });
+            return fu;
         }).compose(s -> {
             assertEquals("x", s);
             assertEquals(3, step[0]++);
@@ -526,6 +536,7 @@ public class TestAll {
         while (!finished[0]) {
             Thread.sleep(1);
         }
+        vertx.close();
     }
 
     @Test
@@ -571,5 +582,80 @@ public class TestAll {
             return null;
         }).setHandler(assertOk());
         assertEquals(1, i[0]);
+    }
+
+    @Test
+    public void forEachRealAsyncYield() throws Exception {
+        Vertx v = Vertx.vertx();
+        boolean[] finished = {false};
+
+        For.each(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)).yield(i -> {
+            Future<Integer> fu = Future.future();
+            v.setTimer(10, l -> {
+                if (i % 3 == 0) fu.complete();
+                else fu.complete(i);
+            });
+            return fu;
+        }).map(list -> {
+            assertEquals(Arrays.asList(1, 2, 4, 5, 7, 8), list);
+            finished[0] = true;
+            return null;
+        }).setHandler(assertOk());
+
+        while (finished[0]) {
+            Thread.sleep(1);
+        }
+        v.close();
+    }
+
+    @Test
+    public void forLoopRealAsyncYield() throws Exception {
+        Vertx v = Vertx.vertx();
+        boolean[] finished = {false};
+
+        For.init(0).condSync(c -> c.i < 10).incrSync(c -> ++c.i).yield(c -> {
+            Future<Integer> fu = Future.future();
+            v.setTimer(10, l -> {
+                if (c.i % 3 == 0) fu.complete();
+                else fu.complete(c.i);
+            });
+            return fu;
+        }).map(list -> {
+            assertEquals(Arrays.asList(1, 2, 4, 5, 7, 8), list);
+            finished[0] = true;
+            return null;
+        }).setHandler(assertOk());
+
+        while (finished[0]) {
+            Thread.sleep(1);
+        }
+        v.close();
+    }
+
+    @Test
+    public void whileRealAsyncYield() throws Exception {
+        Vertx v = Vertx.vertx();
+        boolean[] finished = {false};
+        int[] current = {0};
+
+        While.cond(() -> current[0] < 10).yield(() -> {
+            Future<Integer> fu = Future.future();
+            v.setTimer(10, l -> {
+                int n = current[0];
+                ++current[0];
+                if (n % 3 == 0) fu.complete();
+                else fu.complete(n);
+            });
+            return fu;
+        }).map(list -> {
+            assertEquals(Arrays.asList(1, 2, 4, 5, 7, 8), list);
+            finished[0] = true;
+            return null;
+        }).setHandler(assertOk());
+
+        while (finished[0]) {
+            Thread.sleep(1);
+        }
+        v.close();
     }
 }
