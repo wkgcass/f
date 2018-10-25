@@ -2,10 +2,8 @@ package net.cassite.f;
 
 import io.vertx.core.Future;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -30,7 +28,7 @@ public class For {
         void clear();
     }
 
-    private static <T, R> Future<Object> handleLoopFunc(List<R> results, T t, Function<T, Future<R>> func, ClearLoop clearLoop) {
+    private static <T, R> Future<Object> handleLoopFunc(MList<R> results, T t, Function<T, Future<R>> func, ClearLoop clearLoop) {
         Future<R> fu;
         try {
             fu = func.apply(t);
@@ -71,12 +69,12 @@ public class For {
             this.ite = ite;
         }
 
-        public <R> Monad<List<R>> yield(Function<T, Future<R>> func) {
-            List<R> results = new ArrayList<>();
+        public <R> Monad<MList<R>> yield(Function<T, Future<R>> func) {
+            MList<R> results = MList.unit();
             return Monad.transform(handle(results, func).map(v -> results));
         }
 
-        private <R> Future<Object> handle(List<R> results, Function<T, Future<R>> func) {
+        private <R> Future<Object> handle(MList<R> results, Function<T, Future<R>> func) {
             if (!ite.hasNext())
                 return F.unit();
             T t = ite.next();
@@ -134,12 +132,12 @@ public class For {
                     this.incr = incr;
                 }
 
-                public <R> Monad<List<R>> yield(Function<ForLoopCtx<I>, Future<R>> func) {
-                    List<R> results = new ArrayList<>();
+                public <R> Monad<MList<R>> yield(Function<ForLoopCtx<I>, Future<R>> func) {
+                    MList<R> results = MList.unit();
                     return Monad.transform(handle(new boolean[]{true}, results, func).map(v -> results));
                 }
 
-                private <R> Future<Object> handle(boolean[] doContinue, List<R> results, Function<ForLoopCtx<I>, Future<R>> func) {
+                private <R> Future<Object> handle(boolean[] doContinue, MList<R> results, Function<ForLoopCtx<I>, Future<R>> func) {
                     return condition.apply(ctx).compose(b -> {
                         if (!b) return F.unit();
                         if (!doContinue[0]) return F.unit();

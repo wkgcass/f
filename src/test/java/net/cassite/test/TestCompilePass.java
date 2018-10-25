@@ -6,12 +6,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.function.Function;
 
 public class TestCompilePass {
     @SuppressWarnings("unused") private Monad<?> mo;
     @SuppressWarnings({"FieldCanBeLocal", "unused"}) private Try.TryCode<?>.TryCatch tryCatch;
     @SuppressWarnings({"FieldCanBeLocal", "unused"}) private If.IfStatement<?> ifStmt;
+    @SuppressWarnings({"unused"}) private MList<?> list;
 
     @Test
     public void forEach() {
@@ -125,5 +127,27 @@ public class TestCompilePass {
             .lift(F::app).compose(f -> F.unit());
         F.unit((X) x -> y -> z -> x + y + z)
             .lift(F::app).map(f -> null);
+    }
+
+    @Test
+    public void foreachResultList() {
+        list = For.each(Collections.emptyList()).yield(F::unit).result();
+    }
+
+    @Test
+    public void forResultList() {
+        list = For.init(0).condSync(c -> false).incrSync(c -> {
+        }).yield(c -> F.unit(0)).result();
+    }
+
+    @Test
+    public void whileResultList() {
+        list = While.cond(() -> false).yield(F::unit).result();
+    }
+
+    @Test
+    public void monadUnit() {
+        Monad.unit();
+        Monad.unit(1);
     }
 }

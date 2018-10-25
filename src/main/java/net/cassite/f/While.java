@@ -2,7 +2,6 @@ package net.cassite.f;
 
 import io.vertx.core.Future;
 
-import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -25,7 +24,7 @@ public class While {
             this.condition = condition;
         }
 
-        public <R> Monad<List<R>> yield(Supplier<Future<R>> func) {
+        public <R> Monad<MList<R>> yield(Supplier<Future<R>> func) {
             return For.init(null).cond(c -> condition.get()).incrSync(c -> {
             }).yield(c -> func.get());
         }

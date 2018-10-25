@@ -9,6 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -48,9 +49,14 @@ public class TestAll {
 
     private <T> void assertFuture(Future<T> fu) {
         boolean[] finished = {false};
+        Throwable[] t = {null};
         fu.setHandler(r -> {
+            try {
+                assertTrue(r.succeeded());
+            } catch (Throwable tt) {
+                t[0] = tt;
+            }
             finished[0] = true;
-            assertTrue(r.succeeded());
         });
         while (!finished[0]) {
             try {
@@ -59,6 +65,10 @@ public class TestAll {
                 throw new RuntimeException(e);
             }
         }
+        if (t[0] != null) {
+            t[0].printStackTrace();
+        }
+        assertNull(t[0]);
     }
 
     @Test
@@ -877,7 +887,7 @@ public class TestAll {
         }).recover(t -> {
             assertTrue(t instanceof UnsupportedOperationException);
             assertEquals("a", t.getMessage());
-            return F.unit(Collections.emptyList());
+            return F.unit(MList.unit(Collections.emptyList()));
         }));
     }
 
@@ -965,7 +975,7 @@ public class TestAll {
         }).recover(t -> {
             assertTrue(t instanceof IllegalArgumentException);
             assertEquals("a", t.getMessage());
-            return F.unit(Collections.emptyList());
+            return F.unit(MList.unit(Collections.emptyList()));
         }));
     }
 
@@ -1045,5 +1055,66 @@ public class TestAll {
             assertEquals(Arrays.asList(11, 12, 33), ls);
             return F.unit();
         }));
+    }
+
+    @Test
+    public void flip() {
+        List<Future<Integer>> list = new ArrayList<>();
+        for (int i = 1; i <= 3; ++i) {
+            int x = i;
+            Future<Integer> f = Future.future();
+            vertx.setTimer((5 - i) * 100, l -> f.complete(x));
+            list.add(f);
+        }
+        assertFuture(F.flip(list).compose(ls -> {
+            assertEquals(Arrays.asList(1, 2, 3), ls);
+            return F.unit();
+        }));
+    }
+
+    @Test
+    public void flipThrow() throws InterruptedException {
+        List<Future<Integer>> list = new ArrayList<>();
+        for (int i = 1; i <= 3; ++i) {
+            int x = i;
+            Future<Integer> f = Future.future();
+            vertx.setTimer((5 - i) * 100, l -> {
+                if (x == 2) {
+                    f.fail(new IllegalArgumentException("a"));
+                } else {
+                    f.complete(x);
+                }
+            });
+            list.add(f);
+        }
+        assertFuture(F.flip(list).recover(ex -> {
+            assertTrue(ex instanceof IllegalArgumentException);
+            assertEquals("a", ex.getMessage());
+            return F.unit();
+        }));
+        Thread.sleep(1000);
+    }
+
+    @Test
+    public void flipThrow2() throws InterruptedException {
+        List<Future<Integer>> list = new ArrayList<>();
+        for (int i = 1; i <= 3; ++i) {
+            int x = i;
+            Future<Integer> f = Future.future();
+            vertx.setTimer((5 - i) * 100, l -> {
+                if (x == 2 || x == 3) {
+                    f.fail(new IllegalArgumentException("a" + x));
+                } else {
+                    f.complete(x);
+                }
+            });
+            list.add(f);
+        }
+        assertFuture(F.flip(list).recover(ex -> {
+            assertTrue(ex instanceof IllegalArgumentException);
+            assertEquals("a3", ex.getMessage());
+            return F.unit();
+        }));
+        Thread.sleep(1000);
     }
 }

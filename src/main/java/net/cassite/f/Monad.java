@@ -27,6 +27,14 @@ public class Monad<T> implements Future<T>, IMonad<T> {
         }
     }
 
+    public static <E> Monad<E> unit(E e) {
+        return new Monad<>(Future.succeededFuture(e));
+    }
+
+    public static <E> Monad<E> unit() {
+        return new Monad<>(Future.succeededFuture());
+    }
+
     @Override
     public boolean isComplete() {
         return vertxFuture.isComplete();

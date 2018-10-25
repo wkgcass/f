@@ -7,6 +7,7 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
     TestAll.class,
     TestF.class,
+    TestMList.class,
     Example.class,
     TestCompilePass.class,
     TestFutureProxy.class
