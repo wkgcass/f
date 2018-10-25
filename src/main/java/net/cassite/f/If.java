@@ -85,7 +85,7 @@ public class If {
 
         public <U> Monad<U> compose(Function<T, Future<U>> f) {
             return otherwise(() -> {
-                throw new MatchError("run into `otherwise`, but default condition not specified");
+                throw new MatchError("clear into `otherwise`, but default condition not specified");
             }).compose(f);
         }
 

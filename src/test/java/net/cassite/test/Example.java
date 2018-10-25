@@ -104,12 +104,7 @@ public class Example {
         fuListOfNames.compose(list -> {
             int[] i = {0};
             return While.cond(() -> i[0] < list.size())
-                .yield(() -> {
-                    String name = list.get(i[0]);
-                    String reversed = new StringBuilder(name).reverse().toString();
-                    ++i[0];
-                    return F.unit(reversed);
-                });
+                .yield(() -> F.value(F.unit(new StringBuilder(list.get(i[0])).reverse().toString()), () -> ++i[0]));
         }).compose(results -> {
             Assert.assertEquals(Arrays.asList("tom", "jerry", "alice", "bob", "eva"), results);
             return F.unit();
@@ -177,5 +172,21 @@ public class Example {
                 return F.unit();
             }).setHandler(assertOk());
         Assert.assertTrue(reaches[0]);
+    }
+
+    @Test
+    public void loopBreakExampl() {
+        Future<List<String>> fuListOfNames =
+            F.unit(Arrays.asList("mot", "yrrej", "ecila", "bob", "ave"));
+        fuListOfNames.compose(list ->
+            For.each(list).yield(name -> {
+                if (name.equals("bob")) return F.brk("sam");
+                String reversed = new StringBuilder(name).reverse().toString();
+                return F.unit(reversed);
+            })
+        ).compose(results -> {
+            Assert.assertEquals(Arrays.asList("tom", "jerry", "alice", "sam"), results);
+            return F.unit();
+        }).setHandler(assertOk());
     }
 }

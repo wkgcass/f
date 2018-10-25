@@ -1,17 +1,33 @@
 package net.cassite.test;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import net.cassite.f.*;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
 public class TestAll {
+    private Vertx vertx;
+
+    @Before
+    public void setUp() {
+        vertx = Vertx.vertx();
+    }
+
+    @After
+    public void tearDown() {
+        vertx.close();
+    }
+
     private <T> Handler<AsyncResult<T>> assertOk() {
         return r -> {
             if (r.failed()) {
@@ -28,6 +44,21 @@ public class TestAll {
     private Monad<?> doAssert(List<String> list) {
         assertEquals(Arrays.asList("Tom", "Jerry", "Alice", "Bob", "Eva"), list);
         return F.unit();
+    }
+
+    private <T> void assertFuture(Future<T> fu) {
+        boolean[] finished = {false};
+        fu.setHandler(r -> {
+            finished[0] = true;
+            assertTrue(r.succeeded());
+        });
+        while (!finished[0]) {
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Test
@@ -470,7 +501,6 @@ public class TestAll {
     public void trySequence() throws InterruptedException {
         int[] step = {0};
         boolean[] finished = {false};
-        Vertx vertx = Vertx.vertx();
 
         Try.code(() -> {
             assertEquals(0, step[0]++);
@@ -703,7 +733,7 @@ public class TestAll {
             .setHandler(r -> {
                 assertTrue(r.failed());
                 assertTrue(r.cause() instanceof net.cassite.f.MatchError);
-                assertEquals("run into `otherwise`, but default condition not specified", r.cause().getMessage());
+                assertEquals("clear into `otherwise`, but default condition not specified", r.cause().getMessage());
             });
     }
 
@@ -715,7 +745,7 @@ public class TestAll {
             .setHandler(r -> {
                 assertTrue(r.failed());
                 assertTrue(r.cause() instanceof net.cassite.f.MatchError);
-                assertEquals("run into `otherwise`, but default condition not specified", r.cause().getMessage());
+                assertEquals("clear into `otherwise`, but default condition not specified", r.cause().getMessage());
             });
     }
 
@@ -761,5 +791,259 @@ public class TestAll {
                 reached[0] = true;
             });
         assertTrue(reached[0]);
+    }
+
+    @Test
+    public void forBreak() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i).yield(c -> {
+            if (c.i >= 2) {
+                return F.brk();
+            }
+            return F.unit(list.get(c.i) + 10);
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12), ls);
+            return F.unit();
+        }).setHandler(assertOk());
+    }
+
+    @Test
+    public void forBreakWithValue() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i).yield(c -> {
+            if (c.i >= 2) {
+                return F.brk(33);
+            }
+            return F.unit(list.get(c.i) + 10);
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12, 33), ls);
+            return F.unit();
+        }).setHandler(assertOk());
+    }
+
+    @Test
+    public void forBreakFuture() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        assertFuture(For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i).yield(c -> {
+            Monad<Integer> mo = F.tbd();
+            vertx.setTimer(1, l -> {
+                if (c.i >= 2) {
+                    try {
+                        F.brk();
+                    } catch (Throwable t) {
+                        mo.fail(t);
+                    }
+                } else {
+                    mo.complete(list.get(c.i) + 10);
+                }
+            });
+            return mo;
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12), ls);
+            return F.unit();
+        }));
+    }
+
+    @Test
+    public void forBreakWithValueFuture() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        assertFuture(For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i).yield(c -> {
+            Monad<Integer> mo = F.tbd();
+            vertx.setTimer(1, l -> {
+                if (c.i >= 2) {
+                    try {
+                        F.brk(33);
+                    } catch (Throwable t) {
+                        mo.fail(t);
+                    }
+                } else {
+                    mo.complete(list.get(c.i) + 10);
+                }
+            });
+            return mo;
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12, 33), ls);
+            return F.unit();
+        }));
+    }
+
+    @Test
+    public void forThrowFuture() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        assertFuture(For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i).yield(c -> {
+            Monad<Integer> mo = F.tbd();
+            vertx.setTimer(1, l -> mo.fail(new UnsupportedOperationException("a")));
+            return mo;
+        }).recover(t -> {
+            assertTrue(t instanceof UnsupportedOperationException);
+            assertEquals("a", t.getMessage());
+            return F.unit(Collections.emptyList());
+        }));
+    }
+
+    @Test
+    public void foreachBreak() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        For.each(list).yield(i -> {
+            if (i >= 3) {
+                return F.brk();
+            }
+            return F.unit(i + 10);
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12), ls);
+            return F.unit();
+        }).setHandler(assertOk());
+    }
+
+    @Test
+    public void foreachBreakWithValue() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        For.each(list).yield(i -> {
+            if (i >= 3) {
+                return F.brk(33);
+            }
+            return F.unit(i + 10);
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12, 33), ls);
+            return F.unit();
+        }).setHandler(assertOk());
+    }
+
+    @Test
+    public void foreachBreakFuture() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        assertFuture(For.each(list).yield(i -> {
+            Monad<Integer> mo = F.tbd();
+            vertx.setTimer(1, l -> {
+                if (i >= 3) {
+                    try {
+                        F.brk();
+                    } catch (Throwable t) {
+                        mo.fail(t);
+                    }
+                } else {
+                    mo.complete(i + 10);
+                }
+            });
+            return mo;
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12), ls);
+            return F.unit();
+        }));
+    }
+
+    @Test
+    public void foreachBreakWithValueFuture() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        assertFuture(For.each(list).yield(i -> {
+            Monad<Integer> mo = F.tbd();
+            vertx.setTimer(1, l -> {
+                if (i >= 3) {
+                    try {
+                        F.brk(33);
+                    } catch (Throwable t) {
+                        mo.fail(t);
+                    }
+                } else {
+                    mo.complete(i + 10);
+                }
+            });
+            return mo;
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12, 33), ls);
+            return F.unit();
+        }));
+    }
+
+    @Test
+    public void foreachThrowFuture() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        assertFuture(For.each(list).yield(i -> {
+            Monad<Integer> mo = F.tbd();
+            vertx.setTimer(1, l -> mo.fail(new IllegalArgumentException("a")));
+            return mo;
+        }).recover(t -> {
+            assertTrue(t instanceof IllegalArgumentException);
+            assertEquals("a", t.getMessage());
+            return F.unit(Collections.emptyList());
+        }));
+    }
+
+    @Test
+    public void whileBreak() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        int[] i = {0};
+        While.cond(() -> i[0] < list.size()).yield(() -> {
+            if (i[0] >= 2) {
+                return F.brk();
+            }
+            return F.unit(list.get(i[0]++) + 10);
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12), ls);
+            return F.unit();
+        }).setHandler(assertOk());
+    }
+
+    @Test
+    public void whileBreakWithValue() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        int[] i = {0};
+        While.cond(() -> i[0] < list.size()).yield(() -> {
+            if (i[0] >= 2) {
+                return F.brk(33);
+            }
+            return F.unit(list.get(i[0]++) + 10);
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12, 33), ls);
+            return F.unit();
+        }).setHandler(assertOk());
+    }
+
+    @Test
+    public void whileBreakFuture() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        int[] i = {0};
+        assertFuture(While.cond(() -> i[0] < list.size()).yield(() -> {
+            Monad<Integer> mo = F.tbd();
+            vertx.setTimer(1, l -> {
+                if (i[0] >= 2) {
+                    try {
+                        F.brk();
+                    } catch (Throwable t) {
+                        mo.fail(t);
+                    }
+                } else {
+                    mo.complete(list.get(i[0]++) + 10);
+                }
+            });
+            return mo;
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12), ls);
+            return F.unit();
+        }));
+    }
+
+    @Test
+    public void whileBreakWithValueFuture() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4);
+        int[] i = {0};
+        assertFuture(While.cond(() -> i[0] < list.size()).yield(() -> {
+            Monad<Integer> mo = F.tbd();
+            vertx.setTimer(1, l -> {
+                if (i[0] >= 2) {
+                    try {
+                        F.brk(33);
+                    } catch (Throwable t) {
+                        mo.fail(t);
+                    }
+                } else {
+                    mo.complete(list.get(i[0]++) + 10);
+                }
+            });
+            return mo;
+        }).compose(ls -> {
+            assertEquals(Arrays.asList(11, 12, 33), ls);
+            return F.unit();
+        }));
     }
 }

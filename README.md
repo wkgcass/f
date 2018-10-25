@@ -43,6 +43,8 @@ if (boolValue) {
   res = ...;
 }
 
+// the following dsls are already released
+
 For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i)
     .yield(c -> { ...; return future; })
     .compose(resultList -> ...)
@@ -52,6 +54,12 @@ List<value> resultList = new ArrayList<>();
 for(i = 0; i < list.size(); ++i) {
   resultList.add(...);
 }
+
+// all loop dsls support something similar to `break` keyword
+// use the following expression inside yield
+return F.brk();
+// or
+return F.brk(result);
 
 For.each(iterable).yield(elem -> ...; return future;).compose(resultList -> ...)
 
