@@ -25,6 +25,9 @@ You can get some examples and test cases in test directory.
 Here's some simple usage examples:
 
 ```java
+/**
+ * the `If` dsl is not released yet, you can clone the repo and compile yourself
+ */
 If.cond(boolFuture).run(() -> { ...; return future; })
   .elseif(() -> boolFuture).run(() -> { ...; return future; })
   .otherwise(() -> { ...; return future; })
