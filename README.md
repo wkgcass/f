@@ -25,6 +25,21 @@ You can get some examples and test cases in test directory.
 Here's some simple usage examples:
 
 ```java
+If.cond(boolFuture).run(() -> { ...; return future; })
+  .elseif(() -> boolFuture).run(() -> { ...; return future; })
+  .otherwise(() -> { ...; return future; })
+  .compose(res -> ...);
+
+// similar to
+Value res;
+if (boolValue) {
+  res = ...;
+} else if (boolValue) {
+  res = ...;
+} else {
+  res = ...;
+}
+
 For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i)
     .yield(c -> { ...; return future; })
     .compose(resultList -> ...)
@@ -72,6 +87,10 @@ try {
 >sync means to directly return a value or not return anything  
 >async means to return a future object
 
+* If cond : async
+* If run : async
+* If elseif : async
+* If otherwise : async
 * For init : sync
 * For condSync : sync
 * For incrSync : sync
