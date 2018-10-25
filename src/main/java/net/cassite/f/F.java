@@ -36,28 +36,37 @@ public class F {
     }
 
     public static <E> Monad<MList<E>> flip(List<Future<E>> monadList) {
-        Object lock = new Object();
         Monad<MList<E>> m = tbd();
         boolean[] thrown = {false};
-        Map<Integer, E> map = new HashMap<>();
+        Map<Integer, E> map = new HashMap<>(monadList.size());
+
+        //noinspection UnnecessaryLocalVariable
+        Object lock = map; // randomly picked object as the lock
+
         for (int i = 0; i < monadList.size(); i++) {
             int x = i;
             Future<E> fu = monadList.get(i);
             fu.setHandler(r -> {
                 if (r.failed()) {
+                    boolean doFail = false;
                     synchronized (lock) {
                         if (!thrown[0]) {
-                            m.fail(r.cause());
                             thrown[0] = true;
+                            doFail = true;
                         }
+                    }
+                    if (doFail) {
+                        m.fail(r.cause());
                     }
                     return;
                 }
-                synchronized (lock) {
-                    if (thrown[0]) return;
-                }
+
                 boolean doComplete = false;
+
                 synchronized (lock) {
+                    if (thrown[0])
+                        return;
+
                     map.put(x, r.result());
                     if (map.size() == monadList.size()) {
                         doComplete = true;
