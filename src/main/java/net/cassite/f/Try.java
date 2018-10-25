@@ -28,36 +28,36 @@ public class Try {
             return new TryCatch(exType, exHandler);
         }
 
-        public Future<T> composeFinally(Supplier<Future<?>> func) {
+        public Monad<T> composeFinally(Supplier<Future<?>> func) {
             return except(Throwable.class, Future::failedFuture).composeFinally(func);
         }
 
         public class TryCatch {
             private final LinkedHashMap<Class<? extends Throwable>, Function<Throwable, Future<T>>> handlers = new LinkedHashMap<>();
 
-            @SuppressWarnings("unchecked")
             <EX extends Throwable> TryCatch(Class<EX> exType, Function<EX, Future<T>> exHandler) {
+                //noinspection unchecked
                 handlers.put(exType, (Function<Throwable, Future<T>>) exHandler);
             }
 
-            @SuppressWarnings("unchecked")
             public <EX extends Throwable> TryCatch except(Class<EX> exType, Function<EX, Future<T>> exHandler) {
                 if (handlers.containsKey(exType))
                     throw new Error("try-expression already has handler for " + exType.getName());
+                //noinspection unchecked
                 handlers.put(exType, (Function<Throwable, Future<T>>) exHandler);
                 return this;
             }
 
-            public <X> Future<X> map(Function<T, X> f) {
-                return compose(t -> Future.succeededFuture(f.apply(t)));
+            public <X> Monad<X> map(Function<T, X> f) {
+                return compose(t -> F.unit(f.apply(t)));
             }
 
             public void setHandler(Handler<AsyncResult<T>> handler) {
                 compose(Future::succeededFuture).setHandler(handler);
             }
 
-            public Future<T> composeFinally(Supplier<Future<?>> func) {
-                Future<T> fu = Future.future();
+            public Monad<T> composeFinally(Supplier<Future<?>> func) {
+                Monad<T> fu = F.tbd();
                 setHandler(r -> {
                     Future<?> f;
                     try {
@@ -107,8 +107,8 @@ public class Try {
                 }
             }
 
-            public <X> Future<X> compose(Function<T, Future<X>> f) {
-                Future<X> fu = Future.future();
+            public <X> Monad<X> compose(Function<T, Future<X>> f) {
+                Monad<X> fu = F.tbd();
                 try {
                     c.get().setHandler(res -> {
                         if (res.succeeded()) {

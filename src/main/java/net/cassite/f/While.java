@@ -16,7 +16,7 @@ public class While {
     }
 
     public static WhileLoop cond(BooleanSupplier condition) {
-        return cond(() -> Future.succeededFuture(condition.getAsBoolean()));
+        return cond(() -> F.unit(condition.getAsBoolean()));
     }
 
     public static class WhileLoop {
@@ -26,14 +26,14 @@ public class While {
             this.condition = condition;
         }
 
-        public <R> Future<List<R>> yield(Supplier<Future<R>> func) {
+        public <R> Monad<List<R>> yield(Supplier<Future<R>> func) {
             List<R> results = new ArrayList<>();
-            return handle(results, func).map(v -> results);
+            return Monad.transform(handle(results, func).map(v -> results));
         }
 
         private <R> Future<Object> handle(List<R> results, Supplier<Future<R>> func) {
             return condition.get().compose(b -> {
-                if (!b) return Future.succeededFuture();
+                if (!b) return F.unit();
                 return func.get().map(r -> {
                     if (r != null) results.add(r);
                     return null;

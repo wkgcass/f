@@ -33,14 +33,14 @@ public class For {
             this.ite = ite;
         }
 
-        public <R> Future<List<R>> yield(Function<T, Future<R>> func) {
+        public <R> Monad<List<R>> yield(Function<T, Future<R>> func) {
             List<R> results = new ArrayList<>();
-            return handle(results, func).map(v -> results);
+            return Monad.transform(handle(results, func).map(v -> results));
         }
 
         private <R> Future<Object> handle(List<R> results, Function<T, Future<R>> func) {
             if (!ite.hasNext())
-                return Future.succeededFuture();
+                return F.unit();
             T t = ite.next();
             return func.apply(t).compose(r -> {
                 if (r != null) results.add(r);
@@ -69,7 +69,7 @@ public class For {
         }
 
         public WithCondition condSync(Predicate<ForLoopCtx<I>> condition) {
-            return new WithCondition(ctx -> Future.succeededFuture(condition.test(ctx)));
+            return new WithCondition(ctx -> F.unit(condition.test(ctx)));
         }
 
         public class WithCondition {
@@ -86,7 +86,7 @@ public class For {
             public WithIncr incrSync(Consumer<ForLoopCtx<I>> incrFunc) {
                 return incr(ctx -> {
                     incrFunc.accept(ctx);
-                    return Future.succeededFuture();
+                    return F.unit();
                 });
             }
 
@@ -97,14 +97,14 @@ public class For {
                     this.incr = incr;
                 }
 
-                public <R> Future<List<R>> yield(Function<ForLoopCtx<I>, Future<R>> func) {
+                public <R> Monad<List<R>> yield(Function<ForLoopCtx<I>, Future<R>> func) {
                     List<R> results = new ArrayList<>();
-                    return handle(results, func).map(v -> results);
+                    return Monad.transform(handle(results, func).map(v -> results));
                 }
 
                 private <R> Future<Object> handle(List<R> results, Function<ForLoopCtx<I>, Future<R>> func) {
                     return condition.apply(ctx).compose(b -> {
-                        if (!b) return Future.succeededFuture();
+                        if (!b) return F.unit();
                         return func.apply(ctx).compose(r -> {
                             if (r != null) results.add(r);
                             return incr.apply(ctx);

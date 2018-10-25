@@ -1,12 +1,9 @@
 package net.cassite.test;
 
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import net.cassite.f.For;
-import net.cassite.f.Try;
-import net.cassite.f.While;
+import net.cassite.f.*;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -24,13 +21,13 @@ public class TestAll {
         };
     }
 
-    private Future<String> capToUpper(String e) {
-        return Future.succeededFuture(e.substring(0, 1).toUpperCase() + e.substring(1));
+    private Monad<String> capToUpper(String e) {
+        return F.unit(e.substring(0, 1).toUpperCase() + e.substring(1));
     }
 
-    private Future<?> doAssert(List<String> list) {
+    private Monad<?> doAssert(List<String> list) {
         assertEquals(Arrays.asList("Tom", "Jerry", "Alice", "Bob", "Eva"), list);
-        return Future.succeededFuture();
+        return F.unit();
     }
 
     @Test
@@ -85,7 +82,7 @@ public class TestAll {
     public void forCondSyncIncr() {
         int[] ii = {0};
         String[] array = {"tom", "jerry", "alice", "bob", "eva"};
-        For.init(0).cond(c -> Future.succeededFuture(c.i < array.length)).incrSync(c -> ++c.i)
+        For.init(0).cond(c -> F.unit(c.i < array.length)).incrSync(c -> ++c.i)
             .yield(c -> capToUpper(array[c.i]))
             .compose(list -> {
                 ++ii[0];
@@ -98,7 +95,7 @@ public class TestAll {
     public void forSyncCondIncr() {
         int[] ii = {0};
         String[] array = {"tom", "jerry", "alice", "bob", "eva"};
-        For.init(0).condSync(c -> c.i < array.length).incr(c -> Future.succeededFuture(++c.i))
+        For.init(0).condSync(c -> c.i < array.length).incr(c -> F.unit(++c.i))
             .yield(c -> capToUpper(array[c.i]))
             .compose(list -> {
                 ++ii[0];
@@ -111,7 +108,7 @@ public class TestAll {
     public void forCondIncr() {
         int[] ii = {0};
         String[] array = {"tom", "jerry", "alice", "bob", "eva"};
-        For.init(0).cond(c -> Future.succeededFuture(c.i < array.length)).incr(c -> Future.succeededFuture(++c.i))
+        For.init(0).cond(c -> F.unit(c.i < array.length)).incr(c -> F.unit(++c.i))
             .yield(c -> capToUpper(array[c.i]))
             .compose(list -> {
                 ++ii[0];
@@ -143,7 +140,7 @@ public class TestAll {
         int[] ii = {0};
         String[] array = {"tom", "jerry", "alice", "bob", "eva"};
         int[] i = {0};
-        While.cond(() -> Future.succeededFuture(i[0] < array.length)).yield(() ->
+        While.cond(() -> F.unit(i[0] < array.length)).yield(() ->
             capToUpper(array[i[0]]).map(e -> {
                 ++i[0];
                 return e;
@@ -160,13 +157,13 @@ public class TestAll {
     public void tryNoException() {
         int[] ii = {0};
         Try.code(() ->
-            Future.succeededFuture(233)
+            F.unit(233)
         ).except(Throwable.class, t ->
-            Future.succeededFuture(-1)
+            F.unit(-1)
         ).compose(i -> {
             assertEquals(233, i.intValue());
             ++ii[0];
-            return Future.succeededFuture();
+            return F.unit();
         }).setHandler(assertOk());
         assertEquals(1, ii[0]);
     }
@@ -180,7 +177,7 @@ public class TestAll {
             assertEquals("123", t.getMessage());
             assertTrue(t instanceof Error);
             ++ii[0];
-            return Future.succeededFuture();
+            return F.unit();
         }).setHandler(assertOk());
         assertEquals(1, ii[0]);
     }
@@ -189,16 +186,16 @@ public class TestAll {
     public void tryFails() {
         int[] ii = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new Exception("123"));
             return f;
         }).except(Throwable.class, t -> {
             String msg = t.getMessage();
-            return Future.succeededFuture(Integer.parseInt(msg));
+            return F.unit(Integer.parseInt(msg));
         }).compose(i -> {
             assertEquals(123, i.intValue());
             ++ii[0];
-            return Future.succeededFuture();
+            return F.unit();
         }).setHandler(assertOk());
         assertEquals(1, ii[0]);
     }
@@ -207,18 +204,18 @@ public class TestAll {
     public void tryMultiExcept() {
         int[] ii = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new IllegalArgumentException("123"));
             return f;
         }).except(AssertionError.class, t ->
-            Future.succeededFuture(456)
+            F.unit(456)
         ).except(IllegalArgumentException.class, t -> {
             String msg = t.getMessage();
-            return Future.succeededFuture(Integer.parseInt(msg));
+            return F.unit(Integer.parseInt(msg));
         }).compose(i -> {
             assertEquals(123, i.intValue());
             ++ii[0];
-            return Future.succeededFuture();
+            return F.unit();
         }).setHandler(assertOk());
         assertEquals(1, ii[0]);
     }
@@ -227,11 +224,11 @@ public class TestAll {
     public void tryNotCaught() {
         int[] i = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new IllegalArgumentException("123"));
             return f;
         }).except(AssertionError.class, t ->
-            Future.succeededFuture(456)
+            F.unit(456)
         ).map(v -> v
         ).setHandler(r -> {
             assertTrue(r.failed());
@@ -246,7 +243,7 @@ public class TestAll {
     public void tryExceptThrow() {
         int[] i = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new IllegalArgumentException("123"));
             return f;
         }).except(IllegalArgumentException.class, t -> {
@@ -266,11 +263,11 @@ public class TestAll {
     public void tryExceptFail() {
         int[] i = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new IllegalArgumentException("123"));
             return f;
         }).except(IllegalArgumentException.class, t -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             String msg = "" + (Integer.parseInt(t.getMessage()) + 456);
             f.fail(new UnsupportedOperationException(msg));
             return f;
@@ -288,12 +285,12 @@ public class TestAll {
     public void trySetHandler() {
         int[] i = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new Exception("123"));
             return f;
         }).except(Throwable.class, t -> {
             String msg = t.getMessage();
-            return Future.succeededFuture(Integer.parseInt(msg));
+            return F.unit(Integer.parseInt(msg));
         }).setHandler(r -> {
             assertTrue(r.succeeded());
             assertEquals(123, r.result().intValue());
@@ -306,12 +303,12 @@ public class TestAll {
     public void tryMap() {
         int[] i = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new Exception("123"));
             return f;
         }).except(Throwable.class, t -> {
             String msg = t.getMessage();
-            return Future.succeededFuture(Integer.parseInt(msg));
+            return F.unit(Integer.parseInt(msg));
         }).map(v -> v + 1).setHandler(r -> {
             assertTrue(r.succeeded());
             assertEquals(124, r.result().intValue());
@@ -324,14 +321,14 @@ public class TestAll {
     public void tryFinally() {
         int[] i = {0};
         int[] j = {0};
-        Try.code(() -> Future.succeededFuture(123)
+        Try.code(() -> F.unit(123)
         ).composeFinally(() -> {
             ++i[0];
-            return Future.succeededFuture();
+            return F.unit();
         }).compose(v -> {
             assertEquals(123, v.intValue());
             ++j[0];
-            return Future.succeededFuture();
+            return F.unit();
         }).setHandler(assertOk());
         assertEquals(1, i[0]);
         assertEquals(1, j[0]);
@@ -342,12 +339,12 @@ public class TestAll {
         int[] i = {0};
         int[] j = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new IllegalArgumentException("123"));
             return f;
         }).composeFinally(() -> {
             ++i[0];
-            return Future.succeededFuture();
+            return F.unit();
         }).setHandler(r -> {
             ++j[0];
             assertTrue(r.failed());
@@ -363,7 +360,7 @@ public class TestAll {
         int[] i = {0};
         int[] j = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new IllegalArgumentException("123"));
             return f;
         }).composeFinally(() -> {
@@ -384,7 +381,7 @@ public class TestAll {
         int[] i = {0};
         int[] j = {0};
         Try.code(() ->
-            Future.succeededFuture(123)
+            F.unit(123)
         ).composeFinally(() -> {
             ++i[0];
             throw new UnsupportedOperationException("456");
@@ -403,12 +400,12 @@ public class TestAll {
         int[] i = {0};
         int[] j = {0};
         Try.code(() -> {
-            Future<Integer> f = Future.future();
+            Monad<Integer> f = F.tbd();
             f.fail(new IllegalArgumentException("123"));
             return f;
         }).composeFinally(() -> {
             ++i[0];
-            return Future.failedFuture(new UnsupportedOperationException("456"));
+            return F.fail(new UnsupportedOperationException("456"));
         }).setHandler(r -> {
             ++j[0];
             assertTrue(r.failed());
@@ -424,10 +421,10 @@ public class TestAll {
         int[] i = {0};
         int[] j = {0};
         Try.code(() ->
-            Future.succeededFuture(123)
+            F.unit(123)
         ).composeFinally(() -> {
             ++i[0];
-            return Future.failedFuture(new UnsupportedOperationException("456"));
+            return F.fail(new UnsupportedOperationException("456"));
         }).setHandler(r -> {
             ++j[0];
             assertTrue(r.failed());
@@ -448,10 +445,10 @@ public class TestAll {
             assertEquals("123", t.getMessage());
             assertTrue(t instanceof Error);
             ++ii[0];
-            return Future.succeededFuture();
+            return F.unit();
         }).composeFinally(() -> {
             ++jj[0];
-            return Future.succeededFuture();
+            return F.unit();
         }).setHandler(assertOk());
         assertEquals(1, ii[0]);
         assertEquals(1, jj[0]);
@@ -460,9 +457,9 @@ public class TestAll {
     @Test
     public void tryExceptAddSameThrowableType() {
         try {
-            Try.code(() -> Future.succeededFuture(123))
-                .except(IllegalArgumentException.class, t -> Future.succeededFuture(1))
-                .except(IllegalArgumentException.class, t -> Future.succeededFuture(2));
+            Try.code(() -> F.unit(123))
+                .except(IllegalArgumentException.class, t -> F.unit(1))
+                .except(IllegalArgumentException.class, t -> F.unit(2));
             fail();
         } catch (Error e) {
             assertEquals("try-expression already has handler for java.lang.IllegalArgumentException", e.getMessage());
@@ -477,20 +474,20 @@ public class TestAll {
 
         Try.code(() -> {
             assertEquals(0, step[0]++);
-            Future<String> fu = Future.future();
+            Monad<String> fu = F.tbd();
             vertx.setTimer(1, l -> fu.complete("a"));
             return fu;
         }).except(Throwable.class, t -> {
             fail();
-            return Future.succeededFuture("x");
+            return F.unit("x");
         }).composeFinally(() -> {
             assertEquals(1, step[0]++);
-            return Future.succeededFuture();
+            return F.unit();
         }).compose(s -> {
             assertEquals("a", s);
             assertEquals(2, step[0]++);
             finished[0] = true;
-            return Future.succeededFuture();
+            return F.unit();
         }).setHandler(assertOk());
 
         while (!finished[0]) {
@@ -505,7 +502,7 @@ public class TestAll {
         Vertx vertx = Vertx.vertx();
 
         Try.code(() -> {
-            Future<String> fu = Future.future();
+            Monad<String> fu = F.tbd();
             vertx.setTimer(10, l -> {
                 assertEquals(0, step[0]++);
                 fu.fail(new Exception("a"));
@@ -513,14 +510,14 @@ public class TestAll {
             return fu;
         }).except(Throwable.class, t -> {
             assertEquals("a", t.getMessage());
-            Future<String> fu = Future.future();
+            Monad<String> fu = F.tbd();
             vertx.setTimer(5, l -> {
                 assertEquals(1, step[0]++);
                 fu.complete("x");
             });
             return fu;
         }).composeFinally(() -> {
-            Future<String> fu = Future.future();
+            Monad<String> fu = F.tbd();
             vertx.setTimer(1, l -> {
                 assertEquals(2, step[0]++);
                 fu.complete();
@@ -530,7 +527,7 @@ public class TestAll {
             assertEquals("x", s);
             assertEquals(3, step[0]++);
             finished[0] = true;
-            return Future.succeededFuture();
+            return F.unit();
         }).setHandler(assertOk());
 
         while (!finished[0]) {
@@ -543,8 +540,8 @@ public class TestAll {
     public void forLoopNull() {
         int[] i = {0};
         For.init(0).condSync(c -> c.i < 10).incrSync(c -> ++c.i).yield(c -> {
-            if (c.i % 3 == 0) return Future.succeededFuture();
-            return Future.succeededFuture(c.i);
+            if (c.i % 3 == 0) return F.unit();
+            return F.unit(c.i);
         }).map(list -> {
             assertEquals(Arrays.asList(1, 2, 4, 5, 7, 8), list);
             ++i[0];
@@ -557,8 +554,8 @@ public class TestAll {
     public void forEachNull() {
         int[] ii = {0};
         For.each(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)).yield(i -> {
-            if (i % 3 == 0) return Future.succeededFuture();
-            return Future.succeededFuture(i);
+            if (i % 3 == 0) return F.unit();
+            return F.unit(i);
         }).map(list -> {
             assertEquals(Arrays.asList(1, 2, 4, 5, 7, 8), list);
             ++ii[0];
@@ -574,8 +571,8 @@ public class TestAll {
         While.cond(() -> current[0] < 10).yield(() -> {
             int n = current[0];
             ++current[0];
-            if (n % 3 == 0) return Future.succeededFuture();
-            return Future.succeededFuture(n);
+            if (n % 3 == 0) return F.unit();
+            return F.unit(n);
         }).map(list -> {
             assertEquals(Arrays.asList(1, 2, 4, 5, 7, 8), list);
             ++i[0];
@@ -590,7 +587,7 @@ public class TestAll {
         boolean[] finished = {false};
 
         For.each(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)).yield(i -> {
-            Future<Integer> fu = Future.future();
+            Monad<Integer> fu = F.tbd();
             v.setTimer(10, l -> {
                 if (i % 3 == 0) fu.complete();
                 else fu.complete(i);
@@ -614,7 +611,7 @@ public class TestAll {
         boolean[] finished = {false};
 
         For.init(0).condSync(c -> c.i < 10).incrSync(c -> ++c.i).yield(c -> {
-            Future<Integer> fu = Future.future();
+            Monad<Integer> fu = F.tbd();
             v.setTimer(10, l -> {
                 if (c.i % 3 == 0) fu.complete();
                 else fu.complete(c.i);
@@ -639,7 +636,7 @@ public class TestAll {
         int[] current = {0};
 
         While.cond(() -> current[0] < 10).yield(() -> {
-            Future<Integer> fu = Future.future();
+            Monad<Integer> fu = F.tbd();
             v.setTimer(10, l -> {
                 int n = current[0];
                 ++current[0];
@@ -657,5 +654,112 @@ public class TestAll {
             Thread.sleep(1);
         }
         v.close();
+    }
+
+    @Test
+    public void ifTrueCompose() {
+        If.cond(F.unit(true)).run(() -> F.unit(123))
+            .compose(i -> {
+                assertEquals(123, i.intValue());
+                return F.unit();
+            }).setHandler(assertOk());
+    }
+
+    @Test
+    public void ifElseTrueCompose() {
+        If.cond(F.unit(false)).run(() -> F.unit(456))
+            .elseif(() -> F.unit(true)).run(() -> F.unit(123))
+            .compose(i -> {
+                assertEquals(123, i.intValue());
+                return F.unit();
+            }).setHandler(assertOk());
+    }
+
+    @Test
+    public void ifElseOtherwiseCompose() {
+        If.cond(F.unit(false)).run(() -> F.unit(789))
+            .elseif(() -> F.unit(false)).run(() -> F.unit(456))
+            .otherwise(() -> F.unit(123))
+            .compose(i -> {
+                assertEquals(123, i.intValue());
+                return F.unit();
+            }).setHandler(assertOk());
+    }
+
+    @Test
+    public void ifOtherwiseCompose() {
+        If.cond(F.unit(false)).run(() -> F.unit(456))
+            .otherwise(() -> F.unit(123))
+            .compose(i -> {
+                assertEquals(123, i.intValue());
+                return F.unit();
+            }).setHandler(assertOk());
+    }
+
+    @Test
+    public void ifComposeFail() {
+        If.cond(F.unit(false)).run(() -> F.unit(123))
+            .compose(i -> null)
+            .setHandler(r -> {
+                assertTrue(r.failed());
+                assertTrue(r.cause() instanceof net.cassite.f.MatchError);
+                assertEquals("run into `otherwise`, but default condition not specified", r.cause().getMessage());
+            });
+    }
+
+    @Test
+    public void ifElseComposeFail() {
+        If.cond(F.unit(false)).run(() -> F.unit(456))
+            .elseif(() -> F.unit(false)).run(() -> F.unit(123))
+            .compose(i -> null)
+            .setHandler(r -> {
+                assertTrue(r.failed());
+                assertTrue(r.cause() instanceof net.cassite.f.MatchError);
+                assertEquals("run into `otherwise`, but default condition not specified", r.cause().getMessage());
+            });
+    }
+
+    @Test
+    public void ifOrElseTrueWithOtherwise() {
+        If.cond(F.unit(true)).run(() -> F.unit(789))
+            .elseif(() -> F.unit(false)).run(() -> F.unit(456))
+            .otherwise(() -> F.unit(123))
+            .compose(i -> {
+                assertEquals(789, i.intValue());
+                return F.unit();
+            }).setHandler(assertOk());
+        If.cond(F.unit(false)).run(() -> F.unit(789))
+            .elseif(() -> F.unit(true)).run(() -> F.unit(456))
+            .otherwise(() -> F.unit(123))
+            .compose(i -> {
+                assertEquals(456, i.intValue());
+                return F.unit();
+            }).setHandler(assertOk());
+    }
+
+    @Test
+    public void ifElseMap() {
+        If.cond(F.unit(false)).run(() -> F.unit(456))
+            .elseif(() -> F.unit(true)).run(() -> F.unit(123))
+            .map(i -> {
+                assertEquals(123, i.intValue());
+                return 1024;
+            })
+            .map(i -> {
+                assertEquals(1024, i.intValue());
+                return null;
+            }).setHandler(assertOk());
+    }
+
+    @Test
+    public void ifElseSetHandler() {
+        boolean[] reached = {false};
+        If.cond(F.unit(false)).run(() -> F.unit(456))
+            .elseif(() -> F.unit(true)).run(() -> F.unit(123))
+            .setHandler(r -> {
+                assertEquals(123, r.result().intValue());
+                reached[0] = true;
+            });
+        assertTrue(reached[0]);
     }
 }
