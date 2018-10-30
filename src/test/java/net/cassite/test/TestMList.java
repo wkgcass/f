@@ -66,4 +66,33 @@ public class TestMList {
         ls2[0] = ls.fmap(mapper);
         p.run();
     }
+
+    @Test
+    public void immutable() {
+        MList<Integer> ls = MList.unit(1, 2, 3);
+        ls.set(1, 4);
+        Assert.assertEquals(Arrays.asList(1, 4, 3), ls);
+        ls = ls.immutable();
+        try {
+            ls.set(1, 2);
+            Assert.fail();
+        } catch (UnsupportedOperationException ignore) {
+        }
+        Assert.assertEquals(Arrays.asList(1, 4, 3), ls);
+        MList<Integer> ls2 = ls.immutable();
+        Assert.assertSame(ls, ls2);
+    }
+
+    @Test
+    public void lazyFunc() {
+        MList<Integer> ls = MList.unit(1, 2, 3);
+        ls = ls.map(n -> n + 10);
+        Assert.assertEquals("LazyMListImpl", ls.getClass().getSimpleName());
+        MList<String> ls2 = ls.map(n -> n + "");
+        Assert.assertEquals("LazyMListImpl", ls2.getClass().getSimpleName());
+        MList<String> ls3 = ls2.flatMap(s -> MList.unit(s, s + "x"));
+        Assert.assertEquals("LazyMListImpl", ls3.getClass().getSimpleName());
+        Assert.assertEquals("12", ls3.get(2));
+        Assert.assertEquals(Arrays.asList("11", "11x", "12", "12x", "13", "13x"), ls3);
+    }
 }

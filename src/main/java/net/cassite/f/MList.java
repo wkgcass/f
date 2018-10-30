@@ -1,6 +1,5 @@
 package net.cassite.f;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -8,7 +7,7 @@ import java.util.function.Function;
 
 public interface MList<E> extends List<E> {
     static <E> MList<E> unit() {
-        return new MListImpl<>();
+        return new SimpleMutableMListImpl<>();
     }
 
     static <E> MList<E> unit(Collection<? extends E> c) {
@@ -16,7 +15,14 @@ public interface MList<E> extends List<E> {
             //noinspection unchecked
             return (MList<E>) c;
         }
-        return new MListImpl<>(c);
+        return new SimpleMutableMListImpl<>(c);
+    }
+
+    default MList<E> immutable() {
+        if (this instanceof Immutable) {
+            return this;
+        }
+        return new ImmutableMListImpl<>(this);
     }
 
     @SafeVarargs
@@ -25,19 +31,11 @@ public interface MList<E> extends List<E> {
     }
 
     default <U> MList<U> map(Function<E, U> mapper) {
-        MList<U> resultList = unit();
-        for (E e : this) {
-            resultList.add(mapper.apply(e));
-        }
-        return resultList;
+        return new LazyMListImpl<>(this, (ls, u) -> ls.add(mapper.apply(u)));
     }
 
     default <U> MList<U> compose(Function<E, List<U>> mapper) {
-        MList<U> resultList = unit();
-        for (E e : this) {
-            resultList.addAll(mapper.apply(e));
-        }
-        return resultList;
+        return new LazyMListImpl<>(this, (ls, u) -> ls.addAll(mapper.apply(u)));
     }
 
     // ------- alias start -------
@@ -63,13 +61,4 @@ public interface MList<E> extends List<E> {
     }
 
     // ------- alias end -------
-}
-
-class MListImpl<E> extends ArrayList<E> implements MList<E>, List<E> {
-    MListImpl() {
-    }
-
-    MListImpl(Collection<? extends E> c) {
-        super(c);
-    }
 }

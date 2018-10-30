@@ -13,7 +13,7 @@ public class TestCompilePass {
     @SuppressWarnings("unused") private Monad<?> mo;
     @SuppressWarnings({"FieldCanBeLocal", "unused"}) private Try.TryCode<?>.TryCatch tryCatch;
     @SuppressWarnings({"FieldCanBeLocal", "unused"}) private If.IfStatement<?> ifStmt;
-    @SuppressWarnings({"unused"}) private MList<?> list;
+    private MList<?> list;
 
     @Test
     public void forEach() {
@@ -132,17 +132,20 @@ public class TestCompilePass {
     @Test
     public void foreachResultList() {
         list = For.each(Collections.emptyList()).yield(F::unit).result();
+        Assert.assertTrue(list instanceof Immutable);
     }
 
     @Test
     public void forResultList() {
         list = For.init(0).condSync(c -> false).incrSync(c -> {
         }).yield(c -> F.unit(0)).result();
+        Assert.assertTrue(list instanceof Immutable);
     }
 
     @Test
     public void whileResultList() {
         list = While.cond(() -> false).yield(F::unit).result();
+        Assert.assertTrue(list instanceof Immutable);
     }
 
     @Test

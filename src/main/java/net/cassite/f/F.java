@@ -77,7 +77,7 @@ public class F {
                     for (int j = 0; j < monadList.size(); ++j) {
                         ls.add(map.get(j));
                     }
-                    m.complete(ls);
+                    m.complete(ls.immutable());
                 }
             });
         }

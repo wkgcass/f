@@ -71,7 +71,7 @@ public class For {
 
         public <R> Monad<MList<R>> yield(Function<T, Future<R>> func) {
             MList<R> results = MList.unit();
-            return Monad.transform(handle(results, func).map(v -> results));
+            return Monad.transform(handle(results, func).map(v -> results.immutable()));
         }
 
         private <R> Future<Object> handle(MList<R> results, Function<T, Future<R>> func) {
@@ -134,7 +134,7 @@ public class For {
 
                 public <R> Monad<MList<R>> yield(Function<ForLoopCtx<I>, Future<R>> func) {
                     MList<R> results = MList.unit();
-                    return Monad.transform(handle(new boolean[]{true}, results, func).map(v -> results));
+                    return Monad.transform(handle(new boolean[]{true}, results, func).map(v -> results.immutable()));
                 }
 
                 private <R> Future<Object> handle(boolean[] doContinue, MList<R> results, Function<ForLoopCtx<I>, Future<R>> func) {
