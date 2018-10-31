@@ -58,3 +58,51 @@ class LazyMListImpl<E, U> extends AbstractList<U> implements MList<U>, List<U>, 
         return newList.size();
     }
 }
+
+class TailMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Immutable {
+    private final List<E> fullList;
+
+    TailMListImpl(List<E> fullList) {
+        if (fullList.isEmpty()) {
+            throw new IllegalArgumentException("list is empty");
+        }
+        this.fullList = fullList;
+    }
+
+    @Override
+    public E get(int index) {
+        if (index + 1 >= fullList.size() || index < 0) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
+        }
+        return fullList.get(index + 1);
+    }
+
+    @Override
+    public int size() {
+        return fullList.size() - 1;
+    }
+}
+
+class InitMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Immutable {
+    private final List<E> fullList;
+
+    InitMListImpl(List<E> fullList) {
+        if (fullList.isEmpty()) {
+            throw new IllegalArgumentException("list is empty");
+        }
+        this.fullList = fullList;
+    }
+
+    @Override
+    public E get(int index) {
+        if (index < 0 || index + 1 >= fullList.size()) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
+        }
+        return fullList.get(index);
+    }
+
+    @Override
+    public int size() {
+        return fullList.size() - 1;
+    }
+}

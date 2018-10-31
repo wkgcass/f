@@ -70,7 +70,7 @@ public class For {
         }
 
         public <R> Monad<MList<R>> yield(Function<T, Future<R>> func) {
-            MList<R> results = MList.unit();
+            MList<R> results = MList.modifiable();
             return Monad.transform(handle(results, func).map(v -> results.immutable()));
         }
 
@@ -133,7 +133,7 @@ public class For {
                 }
 
                 public <R> Monad<MList<R>> yield(Function<ForLoopCtx<I>, Future<R>> func) {
-                    MList<R> results = MList.unit();
+                    MList<R> results = MList.modifiable();
                     return Monad.transform(handle(new boolean[]{true}, results, func).map(v -> results.immutable()));
                 }
 

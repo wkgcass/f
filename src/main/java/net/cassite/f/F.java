@@ -73,7 +73,7 @@ public class F {
                     }
                 }
                 if (doComplete) {
-                    MList<E> ls = MList.unit();
+                    MList<E> ls = MList.modifiable();
                     for (int j = 0; j < monadList.size(); ++j) {
                         ls.add(map.get(j));
                     }

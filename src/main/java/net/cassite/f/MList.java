@@ -6,8 +6,12 @@ import java.util.List;
 import java.util.function.Function;
 
 public interface MList<E> extends List<E> {
-    static <E> MList<E> unit() {
+    static <E> MList<E> modifiable() {
         return new SimpleMutableMListImpl<>();
+    }
+
+    static <E> MList<E> unit() {
+        return new SimpleMutableMListImpl<E>().immutable();
     }
 
     static <E> MList<E> unit(Collection<? extends E> c) {
@@ -15,7 +19,7 @@ public interface MList<E> extends List<E> {
             //noinspection unchecked
             return (MList<E>) c;
         }
-        return new SimpleMutableMListImpl<>(c);
+        return new SimpleMutableMListImpl<E>(c).immutable();
     }
 
     default MList<E> immutable() {
@@ -27,7 +31,25 @@ public interface MList<E> extends List<E> {
 
     @SafeVarargs
     static <E> MList<E> unit(E... es) {
-        return unit(Arrays.asList(es));
+        return unit(Arrays.asList(es)).immutable();
+    }
+
+    default E head() {
+        return get(0);
+    }
+
+    default MList<E> tail() {
+        return new TailMListImpl<>(this);
+    }
+
+    default E last() {
+        if (isEmpty())
+            throw new IndexOutOfBoundsException("list is empty");
+        return get(size() - 1);
+    }
+
+    default MList<E> init() {
+        return new InitMListImpl<>(this);
     }
 
     default <U> MList<U> map(Function<E, U> mapper) {

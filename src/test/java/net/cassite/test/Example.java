@@ -40,18 +40,19 @@ public class Example {
         Assert.assertEquals("tom", m2.result());
     }
 
-    interface X extends Function<String, Function<String, Function<String, List<String>>>> {
+    interface X extends Function<Integer, Function<Integer, Function<Integer, Integer>>> {
     }
 
     @Test
     public void applicativeApExample() {
-        List<String> list =
-            F.unit((X) a -> b -> c -> Arrays.asList(a, b, c))
-                .lift(F::app).ap(F.unit("tom"))
-                .lift(F::app).ap(F.unit("jerry"))
-                .lift(F::app).ap(F.unit("alice"))
-                .result();
-        Assert.assertEquals(Arrays.asList("tom", "jerry", "alice"), list);
+        F.unit((X) a -> b -> c -> a + b + c)
+            .lift(F::app).ap(F.unit(1))
+            .lift(F::app).ap(F.unit(2))
+            .lift(F::app).ap(F.unit(3))
+            .compose(i -> {
+                Assert.assertEquals(6, i.intValue());
+                return F.unit();
+            }).setHandler(assertOk());
     }
 
     @Test
@@ -175,7 +176,7 @@ public class Example {
     }
 
     @Test
-    public void loopBreakExampl() {
+    public void loopBreakExample() {
         Future<List<String>> fuListOfNames =
             F.unit(Arrays.asList("mot", "yrrej", "ecila", "bob", "ave"));
         fuListOfNames.compose(list ->
@@ -188,5 +189,12 @@ public class Example {
             Assert.assertEquals(Arrays.asList("tom", "jerry", "alice", "sam"), results);
             return F.unit();
         }).setHandler(assertOk());
+    }
+
+    @Test
+    public void mList() {
+        MList<Integer> list = MList.unit(1, 2, 3);
+        list = list.map(i -> MList.unit(i, i + 10)).flatMap(l -> l).immutable();
+        Assert.assertEquals(Arrays.asList(1, 11, 2, 12, 3, 13), list);
     }
 }
