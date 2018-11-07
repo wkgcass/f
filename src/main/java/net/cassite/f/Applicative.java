@@ -4,7 +4,7 @@ import io.vertx.core.Future;
 
 import java.util.function.Function;
 
-public class Applicative<T, R> implements IMonad<Function<T, R>> {
+public class Applicative<T, R> implements IMonad<Function<T, R>>, AsTransformable<Applicative<T, R>> {
     private final Monad<? extends Function<T, R>> monad;
 
     Applicative(Monad<? extends Function<T, R>> monad) {

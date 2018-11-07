@@ -12,7 +12,7 @@ import java.util.function.Function;
  *
  * @param <T> the type
  */
-public class Monad<T> implements Future<T>, IMonad<T> {
+public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>> {
     private final Future<T> vertxFuture;
 
     Monad(Future<T> vertxFuture) {
@@ -159,12 +159,4 @@ public class Monad<T> implements Future<T>, IMonad<T> {
     public Monad<T> otherwiseEmpty() {
         return transform(vertxFuture.otherwiseEmpty());
     }
-
-    // ------- extension start -------
-
-    public <U, M extends IMonad<U>> M lift(Function<Monad<T>, M> func) {
-        return func.apply(this);
-    }
-
-    // ------- extension end -------
 }

@@ -111,9 +111,9 @@ public class TestCompilePass {
     @Test
     public void applicative() {
         F.unit((X) x -> y -> z -> x + y + z)
-            .lift(F::app).ap(F.unit(1))
-            .lift(F::app).ap(F.unit(2))
-            .lift(F::app).ap(F.unit(3))
+            .as(F::app).ap(F.unit(1))
+            .as(F::app).ap(F.unit(2))
+            .as(F::app).ap(F.unit(3))
             .setHandler(r -> {
                 Assert.assertTrue(r.succeeded());
                 Integer result = r.result();
@@ -124,9 +124,9 @@ public class TestCompilePass {
     @Test
     public void applicativeComposeMap() {
         F.unit((X) x -> y -> z -> x + y + z)
-            .lift(F::app).compose(f -> F.unit());
+            .as(F::app).compose(f -> F.unit());
         F.unit((X) x -> y -> z -> x + y + z)
-            .lift(F::app).map(f -> null);
+            .as(F::app).map(f -> null);
     }
 
     @Test
@@ -152,5 +152,12 @@ public class TestCompilePass {
     public void monadUnit() {
         Monad.unit();
         Monad.unit(1);
+    }
+
+    @Test
+    public void as() {
+        Assert.assertEquals(1, Monad.unit().as(m -> 1).intValue());
+        Assert.assertEquals(2, Monad.unit((Function<String, Integer>) Integer::parseInt).as(F::app).as(a -> 2).intValue());
+        Assert.assertEquals(3, MList.unit().as(l -> 3).intValue());
     }
 }

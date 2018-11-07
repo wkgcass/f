@@ -46,9 +46,9 @@ public class Example {
     @Test
     public void applicativeApExample() {
         F.unit((X) a -> b -> c -> a + b + c)
-            .lift(F::app).ap(F.unit(1))
-            .lift(F::app).ap(F.unit(2))
-            .lift(F::app).ap(F.unit(3))
+            .as(F::app).ap(F.unit(1))
+            .as(F::app).ap(F.unit(2))
+            .as(F::app).ap(F.unit(3))
             .compose(i -> {
                 Assert.assertEquals(6, i.intValue());
                 return F.unit();

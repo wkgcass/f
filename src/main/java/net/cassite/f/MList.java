@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-public interface MList<E> extends List<E> {
+public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
     static <E> MList<E> modifiable() {
         return new SimpleMutableMListImpl<>();
     }
