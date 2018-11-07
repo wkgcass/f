@@ -1,10 +1,13 @@
 package net.cassite.f;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class F {
@@ -103,5 +106,18 @@ public class F {
     public static <T> T value(T result, Procedure p) {
         p.run();
         return result;
+    }
+
+    public static <T> Monad<T> runcb(Consumer<Handler<AsyncResult<T>>> func) {
+        Monad<T> m = tbd();
+        Handler<AsyncResult<T>> cb = r -> {
+            if (r.failed()) {
+                m.fail(r.cause());
+            } else {
+                m.complete(r.result());
+            }
+        };
+        func.accept(cb);
+        return m;
     }
 }
