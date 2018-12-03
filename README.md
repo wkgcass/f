@@ -141,4 +141,8 @@ Flow.exec(() -> a.store(b.bin(Op::add, /* a Future<int> object */)))
 * Try code : async
 * Try except : async
 * Try composeFinally : async
+* MList (all): sync
+* Flow returnPtr : async
+* Flow returnFuture : async
+* Flow returnValue : async
 
