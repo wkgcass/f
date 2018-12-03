@@ -56,17 +56,6 @@ public class Example {
     }
 
     @Test
-    public void monadAlias() {
-        // haskell
-        F.unit(1).bind(i -> F.unit(i + 1));
-        F.unit(1).fmap(i -> i + 1);
-        // scala
-        F.unit(1).flatMap(i -> F.unit(i + 1));
-        // es6 promise
-        F.unit(1).then(i -> F.unit(i + 1));
-    }
-
-    @Test
     public void forExample() {
         Future<List<String>> fuListOfNames =
             F.unit(Arrays.asList("mot", "yrrej", "ecila", "bob", "ave"));
@@ -212,7 +201,7 @@ public class Example {
         Flow.exec(() -> a.value = 3)
             .exec(() -> b.store(a.unary(Op::leftIncr)))
             .exec(() -> c.store(F.unit(a.value + b.value)))
-            .ptrResult(c)
+            .returnPtr(c)
             .map(cc -> {
                 Assert.assertEquals(8, cc.intValue());
                 return null;

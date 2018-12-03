@@ -349,64 +349,6 @@ public class TestFutureProxy {
         m.otherwiseEmpty();
         done();
     }
-
-    // alias start
-
-    @Test
-    public void flatMap() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
-            @Override
-            public <U> Future<U> compose(Function<String, Future<U>> mapper) {
-                here();
-                return mapper.apply(null);
-            }
-        });
-        m.flatMap(s -> new FutureMock<>()).setHandler(r -> {
-        });
-        done();
-    }
-
-    @Test
-    public void bind() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
-            @Override
-            public <U> Future<U> compose(Function<String, Future<U>> mapper) {
-                here();
-                return mapper.apply(null);
-            }
-        });
-        m.bind(s -> new FutureMock<>()).setHandler(r -> {
-        });
-        done();
-    }
-
-    @Test
-    public void then() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
-            @Override
-            public <U> Future<U> compose(Function<String, Future<U>> mapper) {
-                here();
-                return mapper.apply(null);
-            }
-        });
-        m.then(s -> new FutureMock<>()).setHandler(r -> {
-        });
-        done();
-    }
-
-    @Test
-    public void fmap() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
-            @Override
-            public <U> Future<U> map(Function<String, U> mapper) {
-                here();
-                return F.unit(mapper.apply(null));
-            }
-        });
-        m.fmap(s -> "a").setHandler(r -> {
-        });
-        done();
-    }
 }
 
 class FutureMock<T> implements Future<T> {

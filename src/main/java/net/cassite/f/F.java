@@ -111,13 +111,8 @@ public class F {
 
     // ------- start util -------
 
-    @FunctionalInterface
-    public interface Procedure {
-        void run();
-    }
-
     // a common helper function
-    public static <T> T value(T result, Procedure p) {
+    public static <T> T value(T result, Runnable p) {
         p.run();
         return result;
     }

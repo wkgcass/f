@@ -35,20 +35,11 @@ public class TestMList {
     public void compose() {
         MList<Integer> ls = MList.unit(1, 2, 3);
         Function<Integer, List<Integer>> mapper = i -> MList.unit(i + 10, i + 20);
-        MList[] ls2 = new MList[]{ls.compose(mapper)};
-        F.Procedure p = () -> {
+        MList[] ls2 = new MList[]{ls.flatMap(mapper)};
+        Runnable p = () -> {
             Assert.assertEquals(Arrays.asList(1, 2, 3), ls);
             Assert.assertEquals(Arrays.asList(11, 21, 12, 22, 13, 23), ls2[0]);
         };
-        p.run();
-
-        ls2[0] = ls.flatMap(mapper);
-        p.run();
-
-        ls2[0] = ls.bind(mapper);
-        p.run();
-
-        ls2[0] = ls.then(mapper);
         p.run();
     }
 
@@ -57,13 +48,10 @@ public class TestMList {
         MList<Integer> ls = MList.unit(1, 2, 3);
         Function<Integer, Integer> mapper = i -> i + 10;
         MList[] ls2 = new MList[]{ls.map(mapper)};
-        F.Procedure p = () -> {
+        Runnable p = () -> {
             Assert.assertEquals(Arrays.asList(1, 2, 3), ls);
             Assert.assertEquals(Arrays.asList(11, 12, 13), ls2[0]);
         };
-        p.run();
-
-        ls2[0] = ls.fmap(mapper);
         p.run();
     }
 

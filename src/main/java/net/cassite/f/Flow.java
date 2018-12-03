@@ -12,7 +12,7 @@ public class Flow {
         return new FlowStmt().exec(f);
     }
 
-    public static FlowStmt exec(F.Procedure f) {
+    public static FlowStmt exec(Runnable f) {
         return new FlowStmt().exec(f);
     }
 
@@ -31,18 +31,22 @@ public class Flow {
             return this;
         }
 
-        public FlowStmt exec(F.Procedure f) {
+        public FlowStmt exec(Runnable f) {
             return exec(() -> {
                 f.run();
                 return F.unit();
             });
         }
 
-        public <T> Monad<T> plainResult(Supplier<Future<T>> f) {
+        public <T> Monad<T> returnFuture(Supplier<Future<T>> f) {
             return Monad.transform(fu.compose(v -> f.get()));
         }
 
-        public <T> Monad<T> ptrResult(Ptr<T> ptr) {
+        public <T> Monad<T> returnValue(Supplier<T> f) {
+            return Monad.transform(fu.map(v -> f.get()));
+        }
+
+        public <T> Monad<T> returnPtr(Ptr<T> ptr) {
             return Monad.transform(fu.map(v -> ptr.value));
         }
     }

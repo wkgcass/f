@@ -118,6 +118,7 @@ Ptr<Integer> a = Ptr.nil();
 Ptr<Integer> b = Ptr.of(3);
 Flow.exec(() -> a.store(b.bin(Op::add, /* a Future<int> object */)))
     .exec(() -> b.value = a.value + b.value)
+    .returnPtr(a); // or returnFuture or returnValue
 ```
 
 ## function is sync or async?

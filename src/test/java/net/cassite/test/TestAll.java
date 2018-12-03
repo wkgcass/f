@@ -1126,7 +1126,7 @@ public class TestAll {
             .exec(() -> d.store(F.unit(2D)))
             .exec(() -> p.unary(Op::leftIncr))
             .exec(() -> p.store(p.bin(Op::plus, F.unit(d.value.intValue()))))
-            .ptrResult(p)
+            .returnPtr(p)
             .compose(pp -> {
                 assertEquals(4, pp.intValue());
                 assertEquals(2D, d.value, 0);
@@ -1139,12 +1139,15 @@ public class TestAll {
     public void flowExecProcess() {
         Ptr<Integer> p = Ptr.nil();
         Flow.exec(() -> p.value = 3)
-            .plainResult(() -> F.unit(p.value))
+            .returnFuture(() -> F.unit(p.value))
             .compose(pp -> {
                 assertEquals(3, pp.intValue());
                 return F.unit();
             })
             .setHandler(assertOk());
+        Ptr<Integer> q = Ptr.nil();
+        Flow.exec(() -> q.value = 3).returnValue(() -> q.value)
+            .setHandler(r -> assertEquals(3, r.result().intValue()));
     }
 
     @Test
