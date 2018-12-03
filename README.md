@@ -25,9 +25,7 @@ You can get some examples and test cases in test directory.
 Here's some simple usage examples:
 
 ```java
-/**
- * the `If` dsl is not released yet, you can clone the repo and compile yourself
- */
+/* if */
 If.cond(boolFuture).run(() -> { ...; return future; })
   .elseif(() -> boolFuture).run(() -> { ...; return future; })
   .otherwise(() -> { ...; return future; })
@@ -43,8 +41,7 @@ if (boolValue) {
   res = ...;
 }
 
-// the following dsls are already released
-
+/* for */
 For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i)
     .yield(c -> { ...; return future; })
     .compose(resultList -> ...)
@@ -69,6 +66,7 @@ for (Value value : iterable) {
   resultList.add(...);
 }
 
+/* while */
 While.cond(() -> boolValue).yield(() -> ...; return future;).compose(resultList -> ...)
 
 // similar to
@@ -78,6 +76,7 @@ while (boolValue) {
   resultList.add(...)
 }
 
+/* Try */
 Try.code(() -> ...).except(Throwable.class, t -> ...).composeFinally(() -> ...).compose(res -> ...)
 
 // both code and catch(except) can return a value
@@ -91,6 +90,34 @@ try {
 } finally {
   // ...
 }
+
+/* break */
+For.each(list).yield(e -> { ...; F.brk(/* here can have the last value to yield*/); })
+
+// similar to
+for (Value e : list) {
+  ...
+  break;
+}
+
+/* MList */
+MList.unit(1, 2, 3) // Arrays.asList(1, 2, 3)
+
+MList<Value> list = MList.mutable();
+// operate on the list
+list = list.immutable();
+list.map(e -> ...)
+list.compose(e -> MList.unit(...))
+list.head() // first elem
+list.init() // a list except the last elem
+list.tail() // a list except the first elem
+list.last() // last elem
+
+/* pointer and flow */
+Ptr<Integer> a = Ptr.nil();
+Ptr<Integer> b = Ptr.of(3);
+Flow.exec(() -> a.store(b.bin(Op::add, /* a Future<int> object */)))
+    .exec(() -> b.value = a.value + b.value)
 ```
 
 ## function is sync or async?
