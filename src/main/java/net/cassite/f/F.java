@@ -14,6 +14,8 @@ public class F {
     private F() {
     }
 
+    // ------- start Monad initializer -------
+
     public static <T> Monad<T> unit(T value) {
         return Monad.unit(value);
     }
@@ -33,6 +35,10 @@ public class F {
     public static <T> Monad<T> fail(Throwable t) {
         return new Monad<>(Future.failedFuture(t));
     }
+
+    // ------- end Monad initializer -------
+
+    // ------- start Monad transformer -------
 
     public static <T, R> Applicative<T, R> app(Monad<? extends Function<T, R>> monad) {
         return new Applicative<>(monad);
@@ -87,6 +93,10 @@ public class F {
         return m;
     }
 
+    // ------- end Monad transformer -------
+
+    // ------- start flow control -------
+
     // break loop
     public static <T> Monad<T> brk() {
         throw new Break();
@@ -96,6 +106,10 @@ public class F {
     public static <T> Monad<T> brk(T result) {
         throw new Break(result);
     }
+
+    // ------- end flow control -------
+
+    // ------- start util -------
 
     @FunctionalInterface
     public interface Procedure {
@@ -120,4 +134,6 @@ public class F {
         func.accept(cb);
         return m;
     }
+
+    // ------- end util -------
 }

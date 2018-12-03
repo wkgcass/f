@@ -7,6 +7,7 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
     TestAll.class,
     TestF.class,
+    TestOp.class,
     TestMList.class,
     Example.class,
     TestCompilePass.class,

@@ -197,4 +197,26 @@ public class Example {
         list = list.map(i -> MList.unit(i, i + 10)).flatMap(l -> l).immutable();
         Assert.assertEquals(Arrays.asList(1, 11, 2, 12, 3, 13), list);
     }
+
+    @Test
+    public void flow() {
+
+        // define variables
+
+        Ptr<Integer> a = Ptr.nil();
+        Ptr<Integer> b = Ptr.nil();
+        Ptr<Integer> c = Ptr.nil();
+
+        // run
+
+        Flow.exec(() -> a.value = 3)
+            .exec(() -> b.store(a.unary(Op::leftIncr)))
+            .exec(() -> c.store(F.unit(a.value + b.value)))
+            .ptrResult(c)
+            .map(cc -> {
+                Assert.assertEquals(8, cc.intValue());
+                return null;
+            })
+            .setHandler(assertOk());
+    }
 }

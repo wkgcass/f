@@ -1117,4 +1117,43 @@ public class TestAll {
         }));
         Thread.sleep(1000);
     }
+
+    @Test
+    public void flowExecFuture() {
+        Ptr<Integer> p = Ptr.nil();
+        Ptr<Double> d = Ptr.of(1.2);
+        Flow.exec(() -> p.store(F.unit(1)))
+            .exec(() -> d.store(F.unit(2D)))
+            .exec(() -> p.unary(Op::leftIncr))
+            .exec(() -> p.store(p.bin(Op::plus, F.unit(d.value.intValue()))))
+            .ptrResult(p)
+            .compose(pp -> {
+                assertEquals(4, pp.intValue());
+                assertEquals(2D, d.value, 0);
+                return F.unit();
+            })
+            .setHandler(assertOk());
+    }
+
+    @Test
+    public void flowExecProcess() {
+        Ptr<Integer> p = Ptr.nil();
+        Flow.exec(() -> p.value = 3)
+            .plainResult(() -> F.unit(p.value))
+            .compose(pp -> {
+                assertEquals(3, pp.intValue());
+                return F.unit();
+            })
+            .setHandler(assertOk());
+    }
+
+    @Test
+    public void ptrStoreFail() {
+        Ptr<Integer> p = Ptr.of(1);
+        Monad<Integer> m = p.store(F.fail("err"));
+        m.setHandler(r -> {
+            assertTrue(r.failed());
+            assertEquals("err", r.cause().getMessage());
+        });
+    }
 }
