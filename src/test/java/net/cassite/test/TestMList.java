@@ -1,6 +1,7 @@
 package net.cassite.test;
 
 import net.cassite.f.Export;
+import net.cassite.f.Immutable;
 import net.cassite.f.MList;
 import org.junit.Assert;
 import org.junit.Test;
@@ -183,5 +184,49 @@ public class TestMList {
         Assert.assertSame(a, collector.combiner().apply(a, b));
         Assert.assertEquals(MList.unit(0, 1, 2, 3, 4), a);
         Assert.assertSame(a, collector.finisher().apply(a));
+    }
+
+    @Test
+    public void mutable() {
+        MList<Integer> ls = MList.unit(1, 2, 3);
+        Assert.assertTrue(ls instanceof Immutable);
+        Assert.assertEquals(MList.unit(1, 2, 3), ls.mutable());
+        ls.mutable().add(1); // pass
+
+        ls = MList.modifiable();
+        ls.addAll(MList.unit(1, 2, 3));
+        Assert.assertSame(ls.mutable(), ls);
+    }
+
+    @Test
+    public void subList() {
+        MList<Integer> list = MList.modifiable();
+        list.addAll(MList.unit(1, 2, 3, 4, 5));
+        Assert.assertEquals(MList.unit(2, 3, 4), list.subList(1, 4));
+        Assert.assertFalse(list.subList(1, 4) instanceof Immutable);
+        list.subList(1, 4).add(123); // pass
+
+        @SuppressWarnings("unchecked")
+        MList<Integer>[] mList = new MList[]{null};
+        Runnable r = () -> {
+            Assert.assertEquals(MList.unit(2, 3, 4), mList[0].subList(1, 4));
+            Assert.assertTrue(mList[0].subList(1, 4) instanceof Immutable);
+        };
+
+        list = MList.unit(1, 2, 3, 4, 5);
+        mList[0] = list;
+        r.run();
+
+        list = MList.unit(0, 1, 2, 3, 4).map(i -> i + 1);
+        mList[0] = list;
+        r.run();
+
+        list = MList.unit(0, 1, 2, 3, 4, 5).tail();
+        mList[0] = list;
+        r.run();
+
+        list = MList.unit(1, 2, 3, 4, 5, 6).init();
+        mList[0] = list;
+        r.run();
     }
 }

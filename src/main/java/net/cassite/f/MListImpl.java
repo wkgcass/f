@@ -7,16 +7,21 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-class SimpleMutableMListImpl<E> extends ArrayList<E> implements MList<E>, List<E> {
+class SimpleMutableMListImpl<E> extends ArrayList<E> implements MList<E> {
     SimpleMutableMListImpl() {
     }
 
     SimpleMutableMListImpl(Collection<? extends E> c) {
         super(c);
     }
+
+    @Override
+    public MList<E> subList(int fromIndex, int toIndex) {
+        return new SimpleMutableMListImpl<>(super.subList(fromIndex, toIndex));
+    }
 }
 
-class ImmutableMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Immutable {
+class ImmutableMListImpl<E> extends AbstractList<E> implements MList<E>, Immutable {
     private final List<E> ls;
 
     ImmutableMListImpl(List<E> ls) {
@@ -32,9 +37,14 @@ class ImmutableMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>
     public int size() {
         return ls.size();
     }
+
+    @Override
+    public MList<E> subList(int fromIndex, int toIndex) {
+        return MList.unit(super.subList(fromIndex, toIndex));
+    }
 }
 
-class LazyMListImpl<E, U> extends AbstractList<U> implements MList<U>, List<U>, Immutable {
+class LazyMListImpl<E, U> extends AbstractList<U> implements MList<U>, Immutable {
     private final Iterator<E> ite;
     private final List<U> newList = new ArrayList<>();
     private final BiConsumer<List<U>, E> fillElementFunc;
@@ -61,6 +71,11 @@ class LazyMListImpl<E, U> extends AbstractList<U> implements MList<U>, List<U>, 
         }
         return newList.size();
     }
+
+    @Override
+    public MList<U> subList(int fromIndex, int toIndex) {
+        return MList.unit(super.subList(fromIndex, toIndex));
+    }
 }
 
 class TailMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Immutable {
@@ -85,6 +100,11 @@ class TailMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Imm
     public int size() {
         return fullList.size() - 1;
     }
+
+    @Override
+    public MList<E> subList(int fromIndex, int toIndex) {
+        return MList.unit(super.subList(fromIndex, toIndex));
+    }
 }
 
 class InitMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Immutable {
@@ -108,6 +128,11 @@ class InitMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Imm
     @Override
     public int size() {
         return fullList.size() - 1;
+    }
+
+    @Override
+    public MList<E> subList(int fromIndex, int toIndex) {
+        return MList.unit(super.subList(fromIndex, toIndex));
     }
 }
 

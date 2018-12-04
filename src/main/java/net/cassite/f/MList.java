@@ -39,6 +39,13 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
         return new ImmutableMListImpl<>(this);
     }
 
+    default MList<E> mutable() {
+        if (this instanceof Immutable) {
+            return new SimpleMutableMListImpl<>(this);
+        }
+        return this;
+    }
+
     @SafeVarargs
     static <E> MList<E> unit(E... es) {
         return unit(Arrays.asList(es)).immutable();
@@ -69,4 +76,7 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
     default <U> MList<U> flatMap(Function<E, List<U>> mapper) {
         return new LazyMListImpl<>(this, (ls, u) -> ls.addAll(mapper.apply(u)));
     }
+
+    @Override
+    MList<E> subList(int from, int to);
 }
