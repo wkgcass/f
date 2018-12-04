@@ -3,7 +3,6 @@ package net.cassite.test;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import net.cassite.f.F;
 import net.cassite.f.Monad;
 import net.cassite.f.MonadExport;
 import org.junit.Assert;

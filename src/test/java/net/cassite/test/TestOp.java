@@ -11,9 +11,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class TestOp {
     private static final List<BiFunction<Integer, Integer, Integer>> intOperators = Arrays.asList(

@@ -44,6 +44,16 @@ public class F {
         return new Applicative<>(monad);
     }
 
+    @SuppressWarnings("unchecked")
+    public static Monad<?> composite(MList<Monad<?>> monadList) {
+        return flip((List) monadList).mapEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <E> Monad<MList<E>> flip(MList<Monad<E>> monadList) {
+        return flip((List) monadList);
+    }
+
     public static <E> Monad<MList<E>> flip(List<Future<E>> monadList) {
         Monad<MList<E>> m = tbd();
         boolean[] thrown = {false};

@@ -160,4 +160,23 @@ public class TestCompilePass {
         Assert.assertEquals(2, Monad.unit((Function<String, Integer>) Integer::parseInt).as(F::app).as(a -> 2).intValue());
         Assert.assertEquals(3, MList.unit().as(l -> 3).intValue());
     }
+
+    @Test
+    public void asFlip() {
+        MList<Monad<Integer>> array = MList.unit(
+            F.unit(1), F.unit(2), F.unit(3)
+        );
+        MList<Integer> ls = array.as(F::flip).result();
+        Assert.assertEquals(Arrays.asList(1, 2, 3), ls);
+    }
+
+    @Test
+    public void asComposite() {
+        MList<Monad<?>> array = MList.unit(F.unit(1), F.unit(2));
+        Monad<?> res = array.as(F::composite);
+        res.setHandler(r -> {
+            Assert.assertTrue(r.succeeded());
+            Assert.assertNull(r.result());
+        });
+    }
 }

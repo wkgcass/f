@@ -1,10 +1,15 @@
 package net.cassite.f;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+@JsonFormat(shape = JsonFormat.Shape.ARRAY)
+@JsonDeserialize(using = MListDeserializer.class)
 public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
     static <E> MList<E> modifiable() {
         return new SimpleMutableMListImpl<>();

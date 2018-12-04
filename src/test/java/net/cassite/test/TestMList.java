@@ -1,6 +1,5 @@
 package net.cassite.test;
 
-import net.cassite.f.F;
 import net.cassite.f.MList;
 import org.junit.Assert;
 import org.junit.Test;

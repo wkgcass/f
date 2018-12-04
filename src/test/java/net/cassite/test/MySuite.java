@@ -9,6 +9,7 @@ import org.junit.runners.Suite;
     TestF.class,
     TestOp.class,
     TestMList.class,
+    TestJson.class,
     Example.class,
     TestCompilePass.class,
     TestFutureProxy.class
