@@ -179,4 +179,10 @@ public class TestCompilePass {
             Assert.assertNull(r.result());
         });
     }
+
+    @Test
+    public void subListIsMList() {
+        MList<Integer> mList = MList.unit(1, 2, 3).subList(0, 1);
+        Assert.assertEquals(MList.unit(1), mList);
+    }
 }
