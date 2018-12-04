@@ -7,10 +7,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collector;
 
 @JsonFormat(shape = JsonFormat.Shape.ARRAY)
 @JsonDeserialize(using = MListDeserializer.class)
 public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
+    static <E> Collector<E, ?, MList<E>> collector() {
+        return MListCollector.collector();
+    }
+
     static <E> MList<E> modifiable() {
         return new SimpleMutableMListImpl<>();
     }

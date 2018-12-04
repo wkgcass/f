@@ -1,5 +1,6 @@
 package net.cassite.test;
 
+import net.cassite.f.Export;
 import net.cassite.f.MList;
 import org.junit.Assert;
 import org.junit.Test;
@@ -7,6 +8,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collector;
 
 public class TestMList {
     @Test
@@ -157,5 +159,29 @@ public class TestMList {
             Assert.fail();
         } catch (IllegalArgumentException ignore) {
         }
+    }
+
+    @Test
+    public void collect() {
+        MList<Integer> init = MList.unit(1, 3, 2, 4, 5);
+        MList<String> result = init.stream().filter(i -> i <= 4).sorted().map(i -> "" + i).collect(MList.collector());
+        Assert.assertEquals(MList.unit("1", "2", "3", "4"), result);
+    }
+
+    @Test
+    public void collector() {
+        Collector<Integer, MList<Integer>, MList<Integer>> collector = Export.collector();
+        Assert.assertEquals(1, collector.characteristics().size());
+        Assert.assertEquals(Collector.Characteristics.IDENTITY_FINISH, collector.characteristics().iterator().next());
+        Assert.assertEquals("SimpleMutableMListImpl", collector.supplier().get().getClass().getSimpleName());
+        MList<Integer> a = MList.modifiable();
+        a.add(0);
+        collector.accumulator().accept(a, 1);
+        Assert.assertEquals(MList.unit(0, 1), a);
+        MList<Integer> b = MList.modifiable();
+        b.addAll(MList.unit(2, 3, 4));
+        Assert.assertSame(a, collector.combiner().apply(a, b));
+        Assert.assertEquals(MList.unit(0, 1, 2, 3, 4), a);
+        Assert.assertSame(a, collector.finisher().apply(a));
     }
 }

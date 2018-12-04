@@ -3,8 +3,8 @@ package net.cassite.test;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import net.cassite.f.Export;
 import net.cassite.f.Monad;
-import net.cassite.f.MonadExport;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,7 +23,7 @@ public class TestFutureProxy {
 
     @Test
     public void isComplete() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public boolean isComplete() {
                 here();
@@ -36,7 +36,7 @@ public class TestFutureProxy {
 
     @Test
     public void setHandler() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public Future<String> setHandler(Handler<AsyncResult<String>> handler) {
                 here();
@@ -50,7 +50,7 @@ public class TestFutureProxy {
 
     @Test
     public void complete1() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public void complete(String result) {
                 here();
@@ -63,7 +63,7 @@ public class TestFutureProxy {
 
     @Test
     public void complete0() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public void complete() {
                 here();
@@ -76,7 +76,7 @@ public class TestFutureProxy {
 
     @Test
     public void failThrowable() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public void fail(Throwable cause) {
                 here();
@@ -89,7 +89,7 @@ public class TestFutureProxy {
 
     @Test
     public void failString() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public void fail(String failureMessage) {
                 here();
@@ -102,7 +102,7 @@ public class TestFutureProxy {
 
     @Test
     public void tryComplete1() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public boolean tryComplete(String result) {
                 here();
@@ -115,7 +115,7 @@ public class TestFutureProxy {
 
     @Test
     public void tryComplete0() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public boolean tryComplete() {
                 here();
@@ -128,7 +128,7 @@ public class TestFutureProxy {
 
     @Test
     public void tryFailThrowable() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public boolean tryFail(Throwable cause) {
                 here();
@@ -141,7 +141,7 @@ public class TestFutureProxy {
 
     @Test
     public void tryFailString() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public boolean tryFail(String failureMessage) {
                 here();
@@ -154,7 +154,7 @@ public class TestFutureProxy {
 
     @Test
     public void result() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public String result() {
                 here();
@@ -167,7 +167,7 @@ public class TestFutureProxy {
 
     @Test
     public void cause() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public Throwable cause() {
                 here();
@@ -181,7 +181,7 @@ public class TestFutureProxy {
 
     @Test
     public void succeeded() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public boolean succeeded() {
                 here();
@@ -194,7 +194,7 @@ public class TestFutureProxy {
 
     @Test
     public void failed() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public boolean failed() {
                 here();
@@ -207,7 +207,7 @@ public class TestFutureProxy {
 
     @Test
     public void handle() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public void handle(AsyncResult<String> asyncResult) {
                 here();
@@ -220,7 +220,7 @@ public class TestFutureProxy {
 
     @Test
     public void compose2() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public <U> Future<U> compose(Handler<String> handler, Future<U> next) {
                 here();
@@ -234,7 +234,7 @@ public class TestFutureProxy {
 
     @Test
     public void compose1() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public <U> Future<U> compose(Function<String, Future<U>> mapper) {
                 here();
@@ -247,7 +247,7 @@ public class TestFutureProxy {
 
     @Test
     public void mapFunc() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public <U> Future<U> map(Function<String, U> mapper) {
                 here();
@@ -260,7 +260,7 @@ public class TestFutureProxy {
 
     @Test
     public void mapValue() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public <V> Future<V> map(V value) {
                 here();
@@ -273,7 +273,7 @@ public class TestFutureProxy {
 
     @Test
     public void mapEmpty() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public <V> Future<V> mapEmpty() {
                 here();
@@ -286,7 +286,7 @@ public class TestFutureProxy {
 
     @Test
     public void completer() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public Handler<AsyncResult<String>> completer() {
                 here();
@@ -299,7 +299,7 @@ public class TestFutureProxy {
 
     @Test
     public void recover() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public Future<String> recover(Function<Throwable, Future<String>> mapper) {
                 here();
@@ -312,7 +312,7 @@ public class TestFutureProxy {
 
     @Test
     public void otherwiseFunc() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public Future<String> otherwise(Function<Throwable, String> mapper) {
                 here();
@@ -325,7 +325,7 @@ public class TestFutureProxy {
 
     @Test
     public void otherwiseValue() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public Future<String> otherwise(String value) {
                 here();
@@ -338,7 +338,7 @@ public class TestFutureProxy {
 
     @Test
     public void otherwiseEmpty() {
-        Monad<String> m = MonadExport.get(new FutureMock<String>() {
+        Monad<String> m = Export.get(new FutureMock<String>() {
             @Override
             public Future<String> otherwiseEmpty() {
                 here();

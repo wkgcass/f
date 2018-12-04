@@ -2,6 +2,10 @@ package net.cassite.f;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 
 class SimpleMutableMListImpl<E> extends ArrayList<E> implements MList<E>, List<E> {
     SimpleMutableMListImpl() {
@@ -104,5 +108,50 @@ class InitMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Imm
     @Override
     public int size() {
         return fullList.size() - 1;
+    }
+}
+
+class MListCollector<E> implements Collector<E, SimpleMutableMListImpl<E>, MList<E>> {
+    private final Supplier<SimpleMutableMListImpl<E>> SUPPLIER = SimpleMutableMListImpl::new;
+    private final BiConsumer<SimpleMutableMListImpl<E>, E> ACCUMULATOR = List::add;
+    private final BinaryOperator<SimpleMutableMListImpl<E>> COMBINER = (a, b) -> {
+        a.addAll(b);
+        return a;
+    };
+    private final Function<SimpleMutableMListImpl<E>, MList<E>> FINISHER = a -> a;
+    private static final Set<Characteristics> C = Collections.unmodifiableSet(Collections.singleton(Characteristics.IDENTITY_FINISH));
+    private static final MListCollector self = new MListCollector();
+
+    @SuppressWarnings("unchecked")
+    static <E> Collector<E, MList<E>, MList<E>> collector() {
+        return self;
+    }
+
+    private MListCollector() {
+    }
+
+    @Override
+    public Supplier<SimpleMutableMListImpl<E>> supplier() {
+        return SUPPLIER;
+    }
+
+    @Override
+    public BiConsumer<SimpleMutableMListImpl<E>, E> accumulator() {
+        return ACCUMULATOR;
+    }
+
+    @Override
+    public BinaryOperator<SimpleMutableMListImpl<E>> combiner() {
+        return COMBINER;
+    }
+
+    @Override
+    public Function<SimpleMutableMListImpl<E>, MList<E>> finisher() {
+        return FINISHER;
+    }
+
+    @Override
+    public Set<Characteristics> characteristics() {
+        return C;
     }
 }
