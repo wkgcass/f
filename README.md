@@ -5,7 +5,7 @@
 gradle
 
 ```groovy
-compile 'net.cassite:f:0.2.0'
+compile 'net.cassite:f:0.2.1'
 ```
 
 maven
@@ -14,7 +14,7 @@ maven
 <dependency>
   <groupId>net.cassite</groupId>
   <artifactId>f</artifactId>
-  <version>0.1.2</version>
+  <version>0.2.1</version>
 </dependency>
 ```
 
