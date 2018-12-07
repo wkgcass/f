@@ -5,12 +5,14 @@
 ```
 <E> MList.unit()                          // create an immutable empty MList
 <E> MList.unit(E...)                      // create an immutable MList with given elements in it
-<E> MList.unit(Collection<? extends E>)   // create an immutable MList with same elements as the given collection
+<E> MList.unit(Collection<? extends E>)   // create an immutable MList with same elements as the given collection, use the collection if it's MList and immutable
 <E> MList.modifiable()                    // create a mutable MList
-MList.collector()                         // create the collector for java stream api to collect elements into the MList
+<E> MList.modifiable(E...)                // create a mutable MList with given elements in it
+<E> MList.modifiable(Collection<? extends E>) // create a mutable Mlist with same elements as the given collection
+MList.collector()                         // create the collector for java stream api to collect elements into the MList, always create a new collection
 
 list.mutable()                            // transform the list into a mutable list
-                                          // (might be the list itself if already mutable)
+                                          // (always create a new collection)
 list.immutable()                          // transform the list into an immutable list
                                           // (might be the list itself if already immutable)
 <U> list.map(e -> U)                      // map each element to another value and join all values into a new IMMUTABLE list
@@ -22,6 +24,9 @@ list.last()                               // the last element in list
 
 <U> list.as(self -> U)                    // transform into another type
 ```
+
+All methods that say 'creating a mutable list' will always generate a new list.  
+All methods that say 'creating an immutable list' will return the input collection if possible.
 
 ## usage
 
@@ -40,4 +45,8 @@ list.flatMap(e -> MList.unit(e, e + 10, e + 100))    // flatMap, result would be
 MList<Monad<Result>> monadList
 monadList.as(F::flip).compose(results -> ...)        // flip the MList<Monad<Result>> into Monad<MList<Result>>
 monadList.as(F::composite).compose(v -> ...)         // wait for all monads in list to finish, if one monad got error then the result will be set to failed
+
+Json.decodeValue("[1, 2, 3]",                        // json decode into the MList
+    new TypeReference<MList<Integer>>() {});
+Json.encode(MList.unit(1,2,3));                      // json encode from the MList
 ```

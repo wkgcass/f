@@ -20,6 +20,17 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
         return new SimpleMutableMListImpl<>();
     }
 
+    static <E> MList<E> modifiable(Collection<? extends E> c) {
+        MList<E> ls = new SimpleMutableMListImpl<>();
+        ls.addAll(c);
+        return ls;
+    }
+
+    @SafeVarargs
+    static <E> MList<E> modifiable(E... es) {
+        return modifiable(Arrays.asList(es));
+    }
+
     static <E> MList<E> unit() {
         return new SimpleMutableMListImpl<E>().immutable();
     }
@@ -32,6 +43,11 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
         return new SimpleMutableMListImpl<E>(c).immutable();
     }
 
+    @SafeVarargs
+    static <E> MList<E> unit(E... es) {
+        return unit(Arrays.asList(es)).immutable();
+    }
+
     default MList<E> immutable() {
         if (this instanceof Immutable) {
             return this;
@@ -40,23 +56,17 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
     }
 
     default MList<E> mutable() {
-        if (this instanceof Immutable) {
-            return new SimpleMutableMListImpl<>(this);
-        }
-        return this;
-    }
-
-    @SafeVarargs
-    static <E> MList<E> unit(E... es) {
-        return unit(Arrays.asList(es)).immutable();
+        return new SimpleMutableMListImpl<>(this);
     }
 
     default E head() {
+        if (isEmpty())
+            throw new IndexOutOfBoundsException("list is empty");
         return get(0);
     }
 
     default MList<E> tail() {
-        return new TailMListImpl<>(this);
+        return new TailMListImpl<>(this.immutable());
     }
 
     default E last() {
@@ -66,15 +76,15 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
     }
 
     default MList<E> init() {
-        return new InitMListImpl<>(this);
+        return new InitMListImpl<>(this.immutable());
     }
 
     default <U> MList<U> map(Function<E, U> mapper) {
-        return new LazyMListImpl<>(this, (ls, u) -> ls.add(mapper.apply(u)));
+        return new LazyMListImpl<>(this.immutable(), (ls, u) -> ls.add(mapper.apply(u)));
     }
 
     default <U> MList<U> flatMap(Function<E, List<U>> mapper) {
-        return new LazyMListImpl<>(this, (ls, u) -> ls.addAll(mapper.apply(u)));
+        return new LazyMListImpl<>(this.immutable(), (ls, u) -> ls.addAll(mapper.apply(u)));
     }
 
     @Override

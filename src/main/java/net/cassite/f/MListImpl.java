@@ -25,7 +25,7 @@ class ImmutableMListImpl<E> extends AbstractList<E> implements MList<E>, Immutab
     private final List<E> ls;
 
     ImmutableMListImpl(List<E> ls) {
-        this.ls = ls;
+        this.ls = new ArrayList<>(ls);
     }
 
     @Override
@@ -83,7 +83,7 @@ class TailMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Imm
 
     TailMListImpl(List<E> fullList) {
         if (fullList.isEmpty()) {
-            throw new IllegalArgumentException("list is empty");
+            throw new IndexOutOfBoundsException("list is empty");
         }
         this.fullList = fullList;
     }
@@ -112,7 +112,7 @@ class InitMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Imm
 
     InitMListImpl(List<E> fullList) {
         if (fullList.isEmpty()) {
-            throw new IllegalArgumentException("list is empty");
+            throw new IndexOutOfBoundsException("list is empty");
         }
         this.fullList = fullList;
     }

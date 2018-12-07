@@ -122,7 +122,7 @@ public class TestMList {
         try {
             MList.unit().tail();
             Assert.fail();
-        } catch (IllegalArgumentException ignore) {
+        } catch (IndexOutOfBoundsException ignore) {
         }
     }
 
@@ -158,7 +158,7 @@ public class TestMList {
         try {
             MList.unit().init();
             Assert.fail();
-        } catch (IllegalArgumentException ignore) {
+        } catch (IndexOutOfBoundsException ignore) {
         }
     }
 
@@ -193,9 +193,8 @@ public class TestMList {
         Assert.assertEquals(MList.unit(1, 2, 3), ls.mutable());
         ls.mutable().add(1); // pass
 
-        ls = MList.modifiable();
-        ls.addAll(MList.unit(1, 2, 3));
-        Assert.assertSame(ls.mutable(), ls);
+        ls = MList.modifiable(1, 2, 3);
+        Assert.assertNotSame(ls.mutable(), ls);
     }
 
     @Test
@@ -228,5 +227,34 @@ public class TestMList {
         list = MList.unit(1, 2, 3, 4, 5, 6).init();
         mList[0] = list;
         r.run();
+    }
+
+    @Test
+    public void modifiableConstructor() {
+        MList<Integer> list = MList.modifiable();
+        Assert.assertEquals("SimpleMutableMListImpl", list.getClass().getSimpleName());
+        list = MList.modifiable(1, 2, 3);
+        Assert.assertEquals("SimpleMutableMListImpl", list.getClass().getSimpleName());
+        Assert.assertEquals(MList.unit(1, 2, 3), list);
+        list = MList.modifiable(Arrays.asList(1, 2, 3));
+        Assert.assertEquals("SimpleMutableMListImpl", list.getClass().getSimpleName());
+        Assert.assertEquals(MList.unit(1, 2, 3), list);
+    }
+
+    @Test
+    public void immutableListNotAffectedByModifiableOnes() {
+        MList<Integer> list = MList.modifiable(1, 2, 3);
+        MList<String> strList = list.map(i -> ("" + i));
+        Assert.assertEquals("LazyMListImpl", strList.getClass().getSimpleName());
+        list.add(4);
+        Assert.assertEquals(MList.unit("1", "2", "3"), strList);
+
+        MList<Integer> ls = list.tail();
+        list.add(5);
+        Assert.assertEquals(MList.unit(2, 3, 4), ls);
+
+        ls = list.init();
+        list.add(0, 0);
+        Assert.assertEquals(MList.unit(1, 2, 3, 4), ls);
     }
 }
