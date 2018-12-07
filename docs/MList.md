@@ -9,7 +9,8 @@
 <E> MList.modifiable()                    // create a mutable MList
 <E> MList.modifiable(E...)                // create a mutable MList with given elements in it
 <E> MList.modifiable(Collection<? extends E>) // create a mutable Mlist with same elements as the given collection
-MList.collector()                         // create the collector for java stream api to collect elements into the MList, always create a new collection
+MList.collector()                         // create a collector for java stream api to collect elements into an immutable MList, always create a new collection
+MList.mutableCollector()                  // create a collector for java stream api to collect elements into a mutable MList, always create a new collection
 
 list.mutable()                            // transform the list into a mutable list
                                           // (always create a new collection)

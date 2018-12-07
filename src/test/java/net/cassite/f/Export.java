@@ -12,4 +12,8 @@ public class Export {
     public static <T> Collector<T, MList<T>, MList<T>> collector() {
         return MListCollector.collector();
     }
+
+    public static <T> Collector<T, MList<T>, MList<T>> mutableCollector() {
+        return MutableMListCollector.collector();
+    }
 }

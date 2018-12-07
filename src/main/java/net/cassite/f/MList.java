@@ -16,6 +16,10 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
         return MListCollector.collector();
     }
 
+    static <E> Collector<E, ?, MList<E>> mutableCollector() {
+        return MutableMListCollector.collector();
+    }
+
     static <E> MList<E> modifiable() {
         return new SimpleMutableMListImpl<>();
     }

@@ -143,8 +143,8 @@ class MListCollector<E> implements Collector<E, SimpleMutableMListImpl<E>, MList
         a.addAll(b);
         return a;
     };
-    private final Function<SimpleMutableMListImpl<E>, MList<E>> FINISHER = a -> a;
-    private static final Set<Characteristics> C = Collections.unmodifiableSet(Collections.singleton(Characteristics.IDENTITY_FINISH));
+    private final Function<SimpleMutableMListImpl<E>, MList<E>> FINISHER = MList::immutable;
+    private static final Set<Characteristics> C = Collections.unmodifiableSet(Collections.emptySet());
     private static final MListCollector self = new MListCollector();
 
     @SuppressWarnings("unchecked")
@@ -152,7 +152,7 @@ class MListCollector<E> implements Collector<E, SimpleMutableMListImpl<E>, MList
         return self;
     }
 
-    private MListCollector() {
+    MListCollector() {
     }
 
     @Override
@@ -173,6 +173,24 @@ class MListCollector<E> implements Collector<E, SimpleMutableMListImpl<E>, MList
     @Override
     public Function<SimpleMutableMListImpl<E>, MList<E>> finisher() {
         return FINISHER;
+    }
+
+    @Override
+    public Set<Characteristics> characteristics() {
+        return C;
+    }
+}
+
+class MutableMListCollector<E> extends MListCollector<E> {
+    private static final Set<Characteristics> C = Collections.unmodifiableSet(Collections.singleton(Characteristics.IDENTITY_FINISH));
+    private static final MutableMListCollector self = new MutableMListCollector();
+
+    @SuppressWarnings("unchecked")
+    static <E> Collector<E, MList<E>, MList<E>> collector() {
+        return self;
+    }
+
+    private MutableMListCollector() {
     }
 
     @Override

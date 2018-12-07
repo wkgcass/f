@@ -167,13 +167,17 @@ public class TestMList {
         MList<Integer> init = MList.unit(1, 3, 2, 4, 5);
         MList<String> result = init.stream().filter(i -> i <= 4).sorted().map(i -> "" + i).collect(MList.collector());
         Assert.assertEquals(MList.unit("1", "2", "3", "4"), result);
+        Assert.assertTrue(result instanceof Immutable);
+
+        result = init.stream().filter(i -> i <= 4).sorted().map(i -> "" + i).collect(MList.mutableCollector());
+        Assert.assertEquals(MList.unit("1", "2", "3", "4"), result);
+        Assert.assertFalse(result instanceof Immutable);
     }
 
     @Test
     public void collector() {
         Collector<Integer, MList<Integer>, MList<Integer>> collector = Export.collector();
-        Assert.assertEquals(1, collector.characteristics().size());
-        Assert.assertEquals(Collector.Characteristics.IDENTITY_FINISH, collector.characteristics().iterator().next());
+        Assert.assertEquals(0, collector.characteristics().size());
         Assert.assertEquals("SimpleMutableMListImpl", collector.supplier().get().getClass().getSimpleName());
         MList<Integer> a = MList.modifiable();
         a.add(0);
@@ -183,7 +187,10 @@ public class TestMList {
         b.addAll(MList.unit(2, 3, 4));
         Assert.assertSame(a, collector.combiner().apply(a, b));
         Assert.assertEquals(MList.unit(0, 1, 2, 3, 4), a);
-        Assert.assertSame(a, collector.finisher().apply(a));
+        Assert.assertTrue(collector.finisher().apply(a) instanceof Immutable);
+
+        collector = Export.mutableCollector();
+        Assert.assertEquals(Collector.Characteristics.IDENTITY_FINISH, collector.characteristics().iterator().next());
     }
 
     @Test
