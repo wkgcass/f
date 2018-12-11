@@ -1151,6 +1151,16 @@ public class TestAll {
     }
 
     @Test
+    public void flowStorePtr() {
+        Ptr<Integer> p = Ptr.nil();
+        int i = Flow.store(p, () -> F.unit(123))
+            .exec(() -> p.unary(Op::leftIncr))
+            .returnPtr(p)
+            .result();
+        assertEquals(124, i);
+    }
+
+    @Test
     public void ptrStoreFail() {
         Ptr<Integer> p = Ptr.of(1);
         Monad<Integer> m = p.store(F.fail("err"));
@@ -1158,5 +1168,127 @@ public class TestAll {
             assertTrue(r.failed());
             assertEquals("err", r.cause().getMessage());
         });
+    }
+
+    @Test
+    public void doWhile() {
+        Ptr<Integer> i = Ptr.of(0);
+        MList<Integer> ls = MList.unit(1, 2, 3);
+        Monad<MList<String>> res = Do.yield(() -> {
+            Integer ii = ls.get(i.value);
+            ++i.value;
+            return F.unit(ii.toString());
+        }).whileCond(() -> i.value < ls.size());
+        MList<String> resLs = res.result();
+        assertEquals(MList.unit("1", "2", "3"), resLs);
+    }
+
+    @Test
+    public void doWhile2() {
+        // give nothing in first round
+        Monad<MList<String>> res = Do.yield(F::<String>unit).whileCond(() -> false);
+        assertEquals(MList.unit(), res.result());
+        // give nothing in non last round
+        MList<Integer> ls = MList.unit(1, 2, 3);
+        Ptr<Integer> i = Ptr.of(0);
+        res = Do.yield(() -> {
+            if (ls.get(i.value) != 2) {
+                String s = ls.get(i.value).toString();
+                ++i.value;
+                return F.unit(s);
+            }
+            ++i.value;
+            return F.unit();
+        }).whileCond(() -> i.value < ls.size());
+        assertEquals(MList.unit("1", "3"), res.result());
+        // only one round
+        res = Do.yield(() -> F.unit(ls.get(0).toString())).whileCond(() -> false);
+        assertEquals(MList.unit("1"), res.result());
+
+        // throw inside first round
+        Do.yield(() -> {
+            throw new RuntimeException("test exception");
+        }).whileCond(() -> true)
+            .setHandler(r -> {
+                assertTrue(r.failed());
+                assertTrue(r.cause() instanceof RuntimeException);
+                assertEquals("test exception", r.cause().getMessage());
+            });
+        // fail inside first round
+        Do.yield(() -> F.fail("test exception x")).whileCond(() -> true)
+            .setHandler(r -> {
+                assertTrue(r.failed());
+                assertEquals("test exception x", r.cause().getMessage());
+            });
+
+        // throw inside non first round
+        Ptr<Integer> p = Ptr.of(-1);
+        Do.yield(() -> {
+            ++p.value;
+            if (p.value < 1) {
+                return F.unit(ls.get(p.value).toString());
+            }
+            throw new RuntimeException("test exception 2");
+        }).whileCond(() -> true)
+            .setHandler(r -> {
+                assertTrue(r.failed());
+                assertTrue(r.cause() instanceof RuntimeException);
+                assertEquals("test exception 2", r.cause().getMessage());
+            });
+        // fail inside non first round
+        p.value = -1;
+        Do.yield(() -> {
+            ++p.value;
+            if (p.value < 1) {
+                return F.unit(ls.get(p.value).toString());
+            }
+            return F.fail("test exception x2");
+        }).whileCond(() -> true)
+            .setHandler(r -> {
+                assertTrue(r.failed());
+                assertEquals("test exception x2", r.cause().getMessage());
+            });
+
+        // async whileCond
+        i.value = 0;
+        res = Do.yield(() -> {
+            Integer ii = ls.get(i.value);
+            ++i.value;
+            return F.unit(ii.toString());
+        }).whileCond(() -> F.unit(i.value < ls.size()));
+        MList<String> resLs = res.result();
+        assertEquals(MList.unit("1", "2", "3"), resLs);
+    }
+
+    @Test
+    public void doWhileBreak() {
+        // break in first loop
+        Monad<MList<Integer>> res = Do.yield(() -> F.brk(1)).whileCond(() -> true);
+        assertEquals(MList.unit(1), res.result());
+        // break in first loop with future
+        res = Do.yield(() -> {
+            try {
+                F.brk(1);
+            } catch (Throwable t) {
+                return F.fail(t);
+            }
+            fail();
+            return F.unit(1234);
+        }).whileCond(() -> true);
+        assertEquals(MList.unit(1), res.result());
+        // break in first loop
+        Monad<MList<Object>> res2 = Do.yield(F::brk).whileCond(() -> true);
+        assertEquals(MList.unit(), res2.result());
+        // break in first loop with future
+        res2 = Do.yield(() -> {
+            try {
+                F.brk();
+            } catch (Throwable t) {
+                return F.fail(t);
+            }
+            fail();
+            return F.unit();
+        }).whileCond(() -> true);
+        assertEquals(MList.unit(), res2.result());
     }
 }

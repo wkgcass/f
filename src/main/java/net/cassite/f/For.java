@@ -42,12 +42,12 @@ public class For {
         Future<Object> rFu = Future.future();
         fu.setHandler(res -> {
             if (res.failed()) {
+                clearLoop.clear();
                 if (res.cause() instanceof Break) {
                     Break b = (Break) res.cause();
                     if (b.ins != null)
                         //noinspection unchecked
                         results.add((R) b.ins);
-                    clearLoop.clear();
                     rFu.complete();
                 } else {
                     rFu.fail(res.cause());

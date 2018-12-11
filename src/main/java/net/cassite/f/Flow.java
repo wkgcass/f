@@ -8,6 +8,10 @@ public class Flow {
     private Flow() {
     }
 
+    public static <T> FlowStmt store(Ptr<T> ptr, Supplier<Future<T>> f) {
+        return new FlowStmt().store(ptr, f);
+    }
+
     public static <T> FlowStmt exec(Supplier<Future<T>> f) {
         return new FlowStmt().exec(f);
     }
@@ -20,6 +24,10 @@ public class Flow {
         private Future<?> fu = null;
 
         FlowStmt() {
+        }
+
+        public <T> FlowStmt store(Ptr<T> ptr, Supplier<Future<T>> f) {
+            return exec(() -> ptr.store(f.get()));
         }
 
         public <T> FlowStmt exec(Supplier<Future<T>> f) {
