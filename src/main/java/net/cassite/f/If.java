@@ -29,10 +29,10 @@ public class If {
     }
 
     public static class IfStatement<T> {
-        private final LinkedHashMap<Future<Boolean>, Supplier<Future<T>>> conditionMap = new LinkedHashMap<>();
+        private final LinkedHashMap<Supplier<Future<Boolean>>, Supplier<Future<T>>> conditionMap = new LinkedHashMap<>();
 
         IfStatement(Future<Boolean> condFu, Supplier<Future<T>> code) {
-            conditionMap.put(condFu, code);
+            conditionMap.put(() -> condFu, code);
         }
 
         public IfElseif elseif(Supplier<Future<Boolean>> condFu) {
@@ -47,7 +47,7 @@ public class If {
             }
 
             public IfStatement<T> run(Supplier<Future<T>> code) {
-                conditionMap.put(condFu.get(), code);
+                conditionMap.put(condFu, code);
                 return IfStatement.this;
             }
         }
@@ -59,7 +59,7 @@ public class If {
                 // ignore when already finished
                 if (finished[0]) return F.unit();
 
-                Future<Boolean> test = e.getKey();
+                Future<Boolean> test = e.getKey().get();
                 Supplier<Future<T>> stmt = e.getValue();
                 return test.map(b -> {
                     if (b) {

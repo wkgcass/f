@@ -807,6 +807,29 @@ public class TestAll {
     }
 
     @Test
+    public void ifElseIfNoConditionCall() {
+        int[] i = {0};
+        int[] j = {0};
+        int[] k = {0};
+        If.cond(F.unit(false)).run(F::unit)
+            .elseif(() -> {
+                ++i[0];
+                return F.unit(false);
+            }).run(F::unit)
+            .elseif(() -> {
+                ++j[0];
+                return F.unit(true);
+            }).run(F::unit)
+            .elseif(() -> {
+                ++k[0];
+                return F.unit(false);
+            }).run(F::unit).setHandler(assertOk());
+        assertEquals(1, i[0]);
+        assertEquals(1, j[0]);
+        assertEquals(0, k[0]);
+    }
+
+    @Test
     public void forBreak() {
         List<Integer> list = Arrays.asList(1, 2, 3, 4);
         For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i).yield(c -> {
