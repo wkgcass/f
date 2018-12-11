@@ -23,7 +23,8 @@ F.value(t, () -> {})                  // want to return a value but still have s
 F.runcb(cb -> { call(cb) })           // wrap a callback style api into a monad style api
 
 Null                                  // a class that can never be instantiated, can be used in Monad<Null>
-Null.value()                          // always returns null
+<T> Null.value()                      // always returns null
+Null.value                            // return the type Null with value null
 ```
 
 ## usage

@@ -57,5 +57,9 @@ public class Flow {
         public <T> Monad<T> returnPtr(Ptr<T> ptr) {
             return Monad.transform(fu.map(v -> ptr.value));
         }
+
+        public Monad<Null> returnNull() {
+            return Monad.transform(fu.map(v -> Null.value));
+        }
     }
 }

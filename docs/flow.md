@@ -6,7 +6,7 @@
 <R>
 Flow
    [.exec(() -> ?|Monad<?>)]*
-    .returnPtr(Ptr<R>)|.returnValue(() -> R)|.returnFuture(() -> Monad<R>)
+    .returnPtr(Ptr<R>)|.returnValue(() -> R)|.returnFuture(() -> Monad<R>)|.returnNull()
 
 // exec result is FlowStmt without any generic info. each `exec` is considered as a separated statement.
 // return result will be Monad<R>

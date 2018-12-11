@@ -5,7 +5,9 @@ public class Null {
         throw new Throwable("DO NOT INSTANTIATE ME!!!");
     }
 
-    public static Null value() {
+    public static final Null value = null;
+
+    public static <T> T value() {
         return null;
     }
 }

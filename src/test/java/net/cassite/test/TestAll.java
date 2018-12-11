@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
 
@@ -1160,6 +1161,14 @@ public class TestAll {
             .returnPtr(p)
             .result();
         assertEquals(124, i);
+    }
+
+    @Test
+    public void flowReturnNull() {
+        Monad<Null> mNull = Flow.exec((Supplier<Future<Object>>) F::unit)
+            .returnNull();
+        assertNull(mNull.result());
+        assertTrue(mNull.succeeded());
     }
 
     @Test

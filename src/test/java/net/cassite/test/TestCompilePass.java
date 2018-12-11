@@ -185,4 +185,14 @@ public class TestCompilePass {
         MList<Integer> mList = MList.unit(1, 2, 3).subList(0, 1);
         Assert.assertEquals(MList.unit(1), mList);
     }
+
+    @Test
+    public void nullValue() {
+        Number n0 = Null.value();
+        Assert.assertNull(n0);
+        Null n1 = Null.value;
+        Assert.assertNull(n1);
+        Null n2 = Null.value();
+        Assert.assertNull(n2);
+    }
 }
