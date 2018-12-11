@@ -9,6 +9,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1290,5 +1292,21 @@ public class TestAll {
             return F.unit();
         }).whileCond(() -> true);
         assertEquals(MList.unit(), res2.result());
+    }
+
+    @Test
+    public void classNull() throws Exception {
+        Null n = Null.value();
+        assertNull(n);
+        Constructor<Null> cons = Null.class.getDeclaredConstructor();
+        cons.setAccessible(true);
+        try {
+            cons.newInstance();
+            fail();
+        } catch (InvocationTargetException e) {
+            Throwable t = e.getCause();
+            assertEquals(Throwable.class, t.getClass());
+            assertEquals("DO NOT INSTANTIATE ME!!!", t.getMessage());
+        }
     }
 }
