@@ -40,21 +40,16 @@ public class F {
 
     // ------- start Monad transformer -------
 
-    public static <T, R> Applicative<T, R> app(Monad<? extends Function<T, R>> monad) {
-        return new Applicative<>(monad);
+    public static <T, R> Applicative<T, R> app(Future<? extends Function<T, R>> monad) {
+        return new Applicative<>(Monad.transform(monad));
     }
 
     @SuppressWarnings("unchecked")
-    public static Monad<?> composite(MList<Monad<?>> monadList) {
+    public static <R> Monad<R> composite(List<? extends Future<?>> monadList) {
         return flip((List) monadList).mapEmpty();
     }
 
-    @SuppressWarnings("unchecked")
-    public static <E> Monad<MList<E>> flip(MList<Monad<E>> monadList) {
-        return flip((List) monadList);
-    }
-
-    public static <E> Monad<MList<E>> flip(List<Future<E>> monadList) {
+    public static <E> Monad<MList<E>> flip(List<? extends Future<E>> monadList) {
         Monad<MList<E>> m = tbd();
         boolean[] thrown = {false};
         Map<Integer, E> map = new HashMap<>(monadList.size());
