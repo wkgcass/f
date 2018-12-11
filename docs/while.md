@@ -5,9 +5,11 @@
 ```
 <R>
 While.cond(() -> boolean|Monad<Boolean>)
-     .yield(() -> Monad<R>)      // Monad<List<R>>
+     .yield(() -> Monad<R>)                   // Monad<List<R>>
+Do.yield(() -> Monad<R>)
+  .whileCond(() -> boolean|Monad<Boolean>)    // Monad<List<R>>
 
-F.brk([R]?)                      // break with or without the last value to yield
+F.brk([R]?)                                   // break with or without the last value to yield
 ```
 
 ## usage

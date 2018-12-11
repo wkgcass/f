@@ -6,7 +6,7 @@
 1. [if](if.md) the if expression
 1. [for](for.md) the for expression
 1. [for-each](for-each.md) the for-each expression
-1. [while](while.md) the while expression
+1. [while](while.md) the while and do-while expression
 1. [try](try.md) the try expression
 1. [MList](MList.md) list
 1. [ptr](ptr.md) pointer, a value container
