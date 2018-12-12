@@ -1,5 +1,7 @@
 package net.cassite.f;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -27,7 +29,9 @@ public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>>
         }
     }
 
-    public static <E> Monad<E> unit(E e) {
+    public static <E> Monad<E> unit(@NotNull E e) {
+        if (e == null)
+            throw new NullPointerException();
         return new Monad<>(Future.succeededFuture(e));
     }
 
@@ -41,12 +45,16 @@ public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>>
     }
 
     @Override
-    public Monad<T> setHandler(Handler<AsyncResult<T>> handler) {
+    public Monad<T> setHandler(@NotNull Handler<AsyncResult<T>> handler) {
+        if (handler == null)
+            throw new NullPointerException();
         return transform(vertxFuture.setHandler(handler));
     }
 
     @Override
-    public void complete(T result) {
+    public void complete(@NotNull T result) {
+        if (result == null)
+            throw new NullPointerException();
         vertxFuture.complete(result);
     }
 
@@ -56,17 +64,23 @@ public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>>
     }
 
     @Override
-    public void fail(Throwable cause) {
+    public void fail(@NotNull Throwable cause) {
+        if (cause == null)
+            throw new NullPointerException();
         vertxFuture.fail(cause);
     }
 
     @Override
-    public void fail(String failureMessage) {
+    public void fail(@NotNull String failureMessage) {
+        if (failureMessage == null)
+            throw new NullPointerException();
         vertxFuture.fail(failureMessage);
     }
 
     @Override
-    public boolean tryComplete(T result) {
+    public boolean tryComplete(@NotNull T result) {
+        if (result == null)
+            throw new NullPointerException();
         return vertxFuture.tryComplete(result);
     }
 
@@ -76,21 +90,27 @@ public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>>
     }
 
     @Override
-    public boolean tryFail(Throwable cause) {
+    public boolean tryFail(@NotNull Throwable cause) {
+        if (cause == null)
+            throw new NullPointerException();
         return vertxFuture.tryFail(cause);
     }
 
     @Override
-    public boolean tryFail(String failureMessage) {
+    public boolean tryFail(@NotNull String failureMessage) {
+        if (failureMessage == null)
+            throw new NullPointerException();
         return vertxFuture.tryFail(failureMessage);
     }
 
     @Override
+    @Nullable
     public T result() {
         return vertxFuture.result();
     }
 
     @Override
+    @Nullable
     public Throwable cause() {
         return vertxFuture.cause();
     }
@@ -106,27 +126,39 @@ public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>>
     }
 
     @Override
-    public void handle(AsyncResult<T> asyncResult) {
+    public void handle(@NotNull AsyncResult<T> asyncResult) {
+        if (asyncResult == null)
+            throw new NullPointerException();
         vertxFuture.handle(asyncResult);
     }
 
     @Override
-    public <U> Monad<U> compose(Handler<T> handler, Future<U> next) {
+    public <U> Monad<U> compose(@NotNull Handler<T> handler, @NotNull Future<U> next) {
+        if (handler == null)
+            throw new NullPointerException();
+        if (next == null)
+            throw new NullPointerException();
         return transform(vertxFuture.compose(handler, next));
     }
 
     @Override
-    public <U> Monad<U> compose(Function<T, Future<U>> mapper) {
+    public <U> Monad<U> compose(@NotNull Function<T, Future<U>> mapper) {
+        if (mapper == null)
+            throw new NullPointerException();
         return transform(vertxFuture.compose(mapper));
     }
 
     @Override
-    public <U> Monad<U> map(Function<T, U> mapper) {
+    public <U> Monad<U> map(@NotNull Function<T, U> mapper) {
+        if (mapper == null)
+            throw new NullPointerException();
         return transform(vertxFuture.map(mapper));
     }
 
     @Override
-    public <V> Monad<V> map(V value) {
+    public <V> Monad<V> map(@NotNull V value) {
+        if (value == null)
+            throw new NullPointerException();
         return transform(vertxFuture.map(value));
     }
 
@@ -141,17 +173,23 @@ public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>>
     }
 
     @Override
-    public Monad<T> recover(Function<Throwable, Future<T>> mapper) {
+    public Monad<T> recover(@NotNull Function<Throwable, Future<T>> mapper) {
+        if (mapper == null)
+            throw new NullPointerException();
         return transform(vertxFuture.recover(mapper));
     }
 
     @Override
-    public Monad<T> otherwise(Function<Throwable, T> mapper) {
+    public Monad<T> otherwise(@NotNull Function<Throwable, T> mapper) {
+        if (mapper == null)
+            throw new NullPointerException();
         return transform(vertxFuture.otherwise(mapper));
     }
 
     @Override
-    public Monad<T> otherwise(T value) {
+    public Monad<T> otherwise(@NotNull T value) {
+        if (value == null)
+            throw new NullPointerException();
         return transform(vertxFuture.otherwise(value));
     }
 

@@ -1,5 +1,6 @@
 package net.cassite.f;
 
+import com.sun.istack.internal.NotNull;
 import io.vertx.core.Future;
 
 import java.util.function.BiFunction;
@@ -21,28 +22,42 @@ public class Ptr<T> implements AsTransformable<Ptr<T>> {
         return new Ptr<>(null);
     }
 
-    public static <T> Ptr<T> of(T value) {
+    public static <T> Ptr<T> of(@NotNull T value) {
+        if (value == null)
+            throw new NullPointerException();
         return new Ptr<>(value);
     }
 
-    public Monad<T> store(Future<T> fu) {
+    public Monad<T> store(@NotNull Future<T> fu) {
+        if (fu == null)
+            throw new NullPointerException();
         Monad<T> tbd = F.tbd();
         fu.setHandler(r -> {
             if (r.failed()) {
                 tbd.fail(r.cause());
             } else {
                 value = r.result();
-                tbd.complete(value);
+                if (value == null) {
+                    tbd.complete();
+                } else {
+                    tbd.complete(value);
+                }
             }
         });
         return tbd;
     }
 
-    public <R> Monad<R> unary(Function<Ptr<T>, Future<R>> f) {
+    public <R> Monad<R> unary(@NotNull Function<Ptr<T>, Future<R>> f) {
+        if (f == null)
+            throw new NullPointerException();
         return Monad.transform(f.apply(this));
     }
 
-    public <R> Monad<R> bin(BiFunction<Ptr<T>, Future<T>, Future<R>> f, Future<T> fu) {
+    public <R> Monad<R> bin(@NotNull BiFunction<Ptr<T>, Future<T>, Future<R>> f, @NotNull Future<T> fu) {
+        if (f == null)
+            throw new NullPointerException();
+        if (fu == null)
+            throw new NullPointerException();
         return Monad.transform(f.apply(this, fu));
     }
 }

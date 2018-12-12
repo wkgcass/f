@@ -12,7 +12,8 @@ import org.junit.runners.Suite;
     TestJson.class,
     Example.class,
     TestCompilePass.class,
-    TestFutureProxy.class
+    TestFutureProxy.class,
+    TestNPE.class
 })
 public class MySuite {
 }

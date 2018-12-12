@@ -38,10 +38,10 @@ public class TestCompilePass {
 
     @Test
     public void tryExceptComposeFinally() {
-        mo = Try.code(() -> F.unit(1)).except(Throwable.class, t -> F.unit(2)).composeFinally(() -> F.unit(3));
+        mo = Try.code(() -> F.unit(1)).except(Throwable.class, t -> F.unit(2)).composeFinally(F::unit);
         mo = Try.code(() -> Future.succeededFuture(1))
             .except(Throwable.class, t -> Future.succeededFuture(2))
-            .composeFinally(() -> Future.succeededFuture(3));
+            .composeFinally(F::unit);
     }
 
     @Test
@@ -58,9 +58,9 @@ public class TestCompilePass {
 
     @Test
     public void tryComposeFinally() {
-        mo = Try.code(() -> F.unit(1)).composeFinally(() -> F.unit(2));
+        mo = Try.code(() -> F.unit(1)).composeFinally(F::unit);
         mo = Try.code(() -> Future.succeededFuture(1))
-            .composeFinally(() -> Future.succeededFuture(2));
+            .composeFinally(F::unit);
     }
 
     @Test

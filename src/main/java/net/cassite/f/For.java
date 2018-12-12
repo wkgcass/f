@@ -1,5 +1,7 @@
 package net.cassite.f;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import io.vertx.core.Future;
 
 import java.util.Arrays;
@@ -12,15 +14,21 @@ public class For {
     private For() {
     }
 
-    public static <T> ForEach<T> each(Iterable<T> it) {
+    public static <T> ForEach<T> each(@NotNull Iterable<T> it) {
+        if (it == null)
+            throw new NullPointerException();
         return new ForEach<>(it.iterator());
     }
 
-    public static <T> ForEach<T> each(T[] tArr) {
+    public static <T> ForEach<T> each(@NotNull T[] tArr) {
+        if (tArr == null)
+            throw new NullPointerException();
         return new ForEach<>(Arrays.stream(tArr).iterator());
     }
 
-    public static <T> ForEach<T> each(Iterator<T> ite) {
+    public static <T> ForEach<T> each(@NotNull Iterator<T> ite) {
+        if (ite == null)
+            throw new NullPointerException();
         return new ForEach<>(ite);
     }
 
@@ -69,7 +77,9 @@ public class For {
             this.ite = ite;
         }
 
-        public <R> Monad<MList<R>> yield(Function<T, Future<R>> func) {
+        public <R> Monad<MList<R>> yield(@NotNull Function<T, Future<R>> func) {
+            if (func == null)
+                throw new NullPointerException();
             MList<R> results = MList.modifiable();
             return Monad.transform(handle(results, func).map(v -> results.immutable()));
         }
@@ -84,11 +94,12 @@ public class For {
         }
     }
 
-    public static <I> ForLoop<I> init(I initVal) {
+    public static <I> ForLoop<I> init(@Nullable I initVal) {
         return new ForLoop<>(initVal);
     }
 
     public static class ForLoopCtx<I> {
+        @Nullable
         public I i;
     }
 
@@ -99,11 +110,15 @@ public class For {
             ctx.i = i;
         }
 
-        public WithCondition cond(Function<ForLoopCtx<I>, Future<Boolean>> condition) {
+        public WithCondition cond(@NotNull Function<ForLoopCtx<I>, Future<Boolean>> condition) {
+            if (condition == null)
+                throw new NullPointerException();
             return new WithCondition(condition);
         }
 
-        public WithCondition condSync(Predicate<ForLoopCtx<I>> condition) {
+        public WithCondition condSync(@NotNull Predicate<ForLoopCtx<I>> condition) {
+            if (condition == null)
+                throw new NullPointerException();
             return new WithCondition(ctx -> F.unit(condition.test(ctx)));
         }
 
@@ -114,11 +129,15 @@ public class For {
                 this.condition = condition;
             }
 
-            public WithIncr incr(Function<ForLoopCtx<I>, Future<?>> incrFunc) {
+            public WithIncr incr(@NotNull Function<ForLoopCtx<I>, Future<?>> incrFunc) {
+                if (incrFunc == null)
+                    throw new NullPointerException();
                 return new WithIncr(incrFunc);
             }
 
-            public WithIncr incrSync(Consumer<ForLoopCtx<I>> incrFunc) {
+            public WithIncr incrSync(@NotNull Consumer<ForLoopCtx<I>> incrFunc) {
+                if (incrFunc == null)
+                    throw new NullPointerException();
                 return incr(ctx -> {
                     incrFunc.accept(ctx);
                     return F.unit();
@@ -132,7 +151,9 @@ public class For {
                     this.incr = incr;
                 }
 
-                public <R> Monad<MList<R>> yield(Function<ForLoopCtx<I>, Future<R>> func) {
+                public <R> Monad<MList<R>> yield(@NotNull Function<ForLoopCtx<I>, Future<R>> func) {
+                    if (func == null)
+                        throw new NullPointerException();
                     MList<R> results = MList.modifiable();
                     return Monad.transform(handle(new boolean[]{true}, results, func).map(v -> results.immutable()));
                 }

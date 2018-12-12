@@ -1,5 +1,6 @@
 package net.cassite.f;
 
+import com.sun.istack.internal.NotNull;
 import io.vertx.core.Future;
 
 import java.util.function.BooleanSupplier;
@@ -9,7 +10,9 @@ public class Do {
     private Do() {
     }
 
-    public static <T> DoYield<T> yield(Supplier<Future<T>> loop) {
+    public static <T> DoYield<T> yield(@NotNull Supplier<Future<T>> loop) {
+        if (loop == null)
+            throw new NullPointerException();
         return new DoYield<>(loop);
     }
 
@@ -20,11 +23,15 @@ public class Do {
             this.loop = loop;
         }
 
-        public Monad<MList<T>> whileCond(BooleanSupplier cond) {
+        public Monad<MList<T>> whileCond(@NotNull BooleanSupplier cond) {
+            if (cond == null)
+                throw new NullPointerException();
             return whileCond(() -> F.unit(cond.getAsBoolean()));
         }
 
-        public Monad<MList<T>> whileCond(Supplier<Future<Boolean>> cond) {
+        public Monad<MList<T>> whileCond(@NotNull Supplier<Future<Boolean>> cond) {
+            if (cond == null)
+                throw new NullPointerException();
             Monad<MList<T>> tbd = F.tbd();
             Future<T> f;
             try {

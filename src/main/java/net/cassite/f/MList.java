@@ -2,6 +2,7 @@ package net.cassite.f;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.sun.istack.internal.NotNull;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,14 +25,18 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
         return new SimpleMutableMListImpl<>();
     }
 
-    static <E> MList<E> modifiable(Collection<? extends E> c) {
+    static <E> MList<E> modifiable(@NotNull Collection<? extends E> c) {
+        if (c == null)
+            throw new NullPointerException();
         MList<E> ls = new SimpleMutableMListImpl<>();
         ls.addAll(c);
         return ls;
     }
 
     @SafeVarargs
-    static <E> MList<E> modifiable(E... es) {
+    static <E> MList<E> modifiable(@NotNull E... es) {
+        if (es == null)
+            throw new NullPointerException();
         return modifiable(Arrays.asList(es));
     }
 
@@ -39,7 +44,9 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
         return new SimpleMutableMListImpl<E>().immutable();
     }
 
-    static <E> MList<E> unit(Collection<? extends E> c) {
+    static <E> MList<E> unit(@NotNull Collection<? extends E> c) {
+        if (c == null)
+            throw new NullPointerException();
         if (c instanceof MList) {
             //noinspection unchecked
             return (MList<E>) c;
@@ -48,7 +55,9 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
     }
 
     @SafeVarargs
-    static <E> MList<E> unit(E... es) {
+    static <E> MList<E> unit(@NotNull E... es) {
+        if (es == null)
+            throw new NullPointerException();
         return unit(Arrays.asList(es)).immutable();
     }
 
@@ -83,11 +92,15 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
         return new InitMListImpl<>(this.immutable());
     }
 
-    default <U> MList<U> map(Function<E, U> mapper) {
+    default <U> MList<U> map(@NotNull Function<E, U> mapper) {
+        if (mapper == null)
+            throw new NullPointerException();
         return new LazyMListImpl<>(this.immutable(), (ls, u) -> ls.add(mapper.apply(u)));
     }
 
-    default <U> MList<U> flatMap(Function<E, List<U>> mapper) {
+    default <U> MList<U> flatMap(@NotNull Function<E, List<U>> mapper) {
+        if (mapper == null)
+            throw new NullPointerException();
         return new LazyMListImpl<>(this.immutable(), (ls, u) -> ls.addAll(mapper.apply(u)));
     }
 

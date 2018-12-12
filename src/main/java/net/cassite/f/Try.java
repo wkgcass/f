@@ -1,5 +1,6 @@
 package net.cassite.f;
 
+import com.sun.istack.internal.NotNull;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -13,7 +14,9 @@ public class Try {
     private Try() {
     }
 
-    public static <T> TryCode<T> code(Supplier<Future<T>> c) {
+    public static <T> TryCode<T> code(@NotNull Supplier<Future<T>> c) {
+        if (c == null)
+            throw new NullPointerException();
         return new TryCode<>(c);
     }
 
@@ -24,11 +27,17 @@ public class Try {
             this.c = c;
         }
 
-        public <EX extends Throwable> TryCatch except(Class<EX> exType, Function<EX, Future<T>> exHandler) {
+        public <EX extends Throwable> TryCatch except(@NotNull Class<EX> exType, @NotNull Function<EX, Future<T>> exHandler) {
+            if (exType == null)
+                throw new NullPointerException();
+            if (exHandler == null)
+                throw new NullPointerException();
             return new TryCatch(exType, exHandler);
         }
 
-        public Monad<T> composeFinally(Supplier<Future<?>> func) {
+        public Monad<T> composeFinally(@NotNull Supplier<Future<Null>> func) {
+            if (func == null)
+                throw new NullPointerException();
             return except(Throwable.class, Future::failedFuture).composeFinally(func);
         }
 
@@ -40,7 +49,11 @@ public class Try {
                 handlers.put(exType, (Function<Throwable, Future<T>>) exHandler);
             }
 
-            public <EX extends Throwable> TryCatch except(Class<EX> exType, Function<EX, Future<T>> exHandler) {
+            public <EX extends Throwable> TryCatch except(@NotNull Class<EX> exType, @NotNull Function<EX, Future<T>> exHandler) {
+                if (exType == null)
+                    throw new NullPointerException();
+                if (exHandler == null)
+                    throw new NullPointerException();
                 if (handlers.containsKey(exType))
                     throw new Error("try-expression already has handler for " + exType.getName());
                 //noinspection unchecked
@@ -48,17 +61,24 @@ public class Try {
                 return this;
             }
 
-            public <X> Monad<X> map(Function<T, X> f) {
+            public <X> Monad<X> map(@NotNull Function<T, X> f) {
+                if (f == null)
+                    throw new NullPointerException();
                 return compose(t -> F.unit(f.apply(t)));
             }
 
-            public void setHandler(Handler<AsyncResult<T>> handler) {
+            public void setHandler(@NotNull Handler<AsyncResult<T>> handler) {
+                if (handler == null)
+                    throw new NullPointerException();
                 compose(Future::succeededFuture).setHandler(handler);
             }
 
-            public Monad<T> composeFinally(Supplier<Future<?>> func) {
+            public Monad<T> composeFinally(@NotNull Supplier<Future<Null>> func) {
+                if (func == null)
+                    throw new NullPointerException();
                 Monad<T> fu = F.tbd();
                 setHandler(r -> {
+                    // always try to run finally code
                     Future<?> f;
                     try {
                         f = func.get();
@@ -71,11 +91,16 @@ public class Try {
                         if (r2.failed()) {
                             fu.fail(r2.cause());
                         } else {
+                            // then check the actual result
                             if (r.failed()) {
                                 fu.fail(r.cause());
                             } else {
                                 T t = r.result();
-                                fu.complete(t);
+                                if (t == null) {
+                                    fu.complete();
+                                } else {
+                                    fu.complete(t);
+                                }
                             }
                         }
                     });
@@ -107,7 +132,9 @@ public class Try {
                 }
             }
 
-            public <X> Monad<X> compose(Function<T, Future<X>> f) {
+            public <X> Monad<X> compose(@NotNull Function<T, Future<X>> f) {
+                if (f == null)
+                    throw new NullPointerException();
                 Monad<X> fu = F.tbd();
                 try {
                     c.get().setHandler(res -> {

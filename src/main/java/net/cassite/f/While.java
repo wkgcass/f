@@ -1,5 +1,6 @@
 package net.cassite.f;
 
+import com.sun.istack.internal.NotNull;
 import io.vertx.core.Future;
 
 import java.util.function.BooleanSupplier;
@@ -9,11 +10,15 @@ public class While {
     private While() {
     }
 
-    public static WhileLoop cond(Supplier<Future<Boolean>> condition) {
+    public static WhileLoop cond(@NotNull Supplier<Future<Boolean>> condition) {
+        if (condition == null)
+            throw new NullPointerException();
         return new WhileLoop(condition);
     }
 
-    public static WhileLoop cond(BooleanSupplier condition) {
+    public static WhileLoop cond(@NotNull BooleanSupplier condition) {
+        if (condition == null)
+            throw new NullPointerException();
         return cond(() -> F.unit(condition.getAsBoolean()));
     }
 
@@ -24,7 +29,9 @@ public class While {
             this.condition = condition;
         }
 
-        public <R> Monad<MList<R>> yield(Supplier<Future<R>> func) {
+        public <R> Monad<MList<R>> yield(@NotNull Supplier<Future<R>> func) {
+            if (func == null)
+                throw new NullPointerException();
             return For.init(null).cond(c -> condition.get()).incrSync(c -> {
             }).yield(c -> func.get());
         }

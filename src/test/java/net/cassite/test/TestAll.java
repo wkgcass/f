@@ -560,7 +560,7 @@ public class TestAll {
             });
             return fu;
         }).composeFinally(() -> {
-            Monad<String> fu = F.tbd();
+            Monad<Null> fu = F.tbd();
             vertx.setTimer(1, l -> {
                 assertEquals(2, step[0]++);
                 fu.complete();
@@ -848,6 +848,7 @@ public class TestAll {
         List<Integer> list = Arrays.asList(1, 2, 3, 4);
         For.init(0).condSync(c -> c.i < list.size()).incrSync(c -> ++c.i).yield(c -> {
             if (c.i >= 2) {
+                //noinspection ConstantConditions
                 return F.brk(33);
             }
             return F.unit(list.get(c.i) + 10);
@@ -936,6 +937,7 @@ public class TestAll {
         List<Integer> list = Arrays.asList(1, 2, 3, 4);
         For.each(list).yield(i -> {
             if (i >= 3) {
+                //noinspection ConstantConditions
                 return F.brk(33);
             }
             return F.unit(i + 10);
@@ -1026,6 +1028,7 @@ public class TestAll {
         int[] i = {0};
         While.cond(() -> i[0] < list.size()).yield(() -> {
             if (i[0] >= 2) {
+                //noinspection ConstantConditions
                 return F.brk(33);
             }
             return F.unit(list.get(i[0]++) + 10);
@@ -1205,6 +1208,13 @@ public class TestAll {
     }
 
     @Test
+    public void ptrStoreNull() {
+        Ptr<Integer> p = Ptr.of(1);
+        p.store(F.unit());
+        assertNull(p.value);
+    }
+
+    @Test
     public void doWhile() {
         Ptr<Integer> i = Ptr.of(0);
         MList<Integer> ls = MList.unit(1, 2, 3);
@@ -1297,6 +1307,7 @@ public class TestAll {
     @Test
     public void doWhileBreak() {
         // break in first loop
+        //noinspection ConstantConditions
         Monad<MList<Integer>> res = Do.yield(() -> F.brk(1)).whileCond(() -> true);
         assertEquals(MList.unit(1), res.result());
         // break in first loop with future
@@ -1340,5 +1351,18 @@ public class TestAll {
             assertEquals(Throwable.class, t.getClass());
             assertEquals("DO NOT INSTANTIATE ME!!!", t.getMessage());
         }
+    }
+
+    @Test
+    public void handler() {
+        Monad<Integer> tbd = F.tbd();
+        F.handler(tbd).handle(F.unit());
+        assertTrue(tbd.isComplete());
+        assertNull(tbd.result());
+
+        tbd = F.tbd();
+        F.handler(tbd).handle(F.unit(2));
+        assertTrue(tbd.isComplete());
+        assertEquals(2, tbd.result().intValue());
     }
 }

@@ -1,5 +1,6 @@
 package net.cassite.f;
 
+import com.sun.istack.internal.NotNull;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -12,7 +13,9 @@ public class If {
     private If() {
     }
 
-    public static IfCondition cond(Future<Boolean> condFu) {
+    public static IfCondition cond(@NotNull Future<Boolean> condFu) {
+        if (condFu == null)
+            throw new NullPointerException();
         return new IfCondition(condFu);
     }
 
@@ -23,7 +26,9 @@ public class If {
             this.condFu = condFu;
         }
 
-        public <T> IfStatement<T> run(Supplier<Future<T>> code) {
+        public <T> IfStatement<T> run(@NotNull Supplier<Future<T>> code) {
+            if (code == null)
+                throw new NullPointerException();
             return new IfStatement<>(condFu, code);
         }
     }
@@ -35,7 +40,9 @@ public class If {
             conditionMap.put(() -> condFu, code);
         }
 
-        public IfElseif elseif(Supplier<Future<Boolean>> condFu) {
+        public IfElseif elseif(@NotNull Supplier<Future<Boolean>> condFu) {
+            if (condFu == null)
+                throw new NullPointerException();
             return new IfElseif(condFu);
         }
 
@@ -46,13 +53,17 @@ public class If {
                 this.condFu = condFu;
             }
 
-            public IfStatement<T> run(Supplier<Future<T>> code) {
+            public IfStatement<T> run(@NotNull Supplier<Future<T>> code) {
+                if (code == null)
+                    throw new NullPointerException();
                 conditionMap.put(condFu, code);
                 return IfStatement.this;
             }
         }
 
-        public Monad<T> otherwise(Supplier<Future<T>> code) {
+        public Monad<T> otherwise(@NotNull Supplier<Future<T>> code) {
+            if (code == null)
+                throw new NullPointerException();
             boolean[] finished = {false};
             Monad<T> fu = F.tbd();
             For.each(conditionMap.entrySet()).yield(e -> {
@@ -83,17 +94,23 @@ public class If {
             return fu;
         }
 
-        public <U> Monad<U> compose(Function<T, Future<U>> f) {
+        public <U> Monad<U> compose(@NotNull Function<T, Future<U>> f) {
+            if (f == null)
+                throw new NullPointerException();
             return otherwise(() -> {
                 throw new MatchError("clear into `otherwise`, but default condition not specified");
             }).compose(f);
         }
 
-        public <U> Monad<U> map(Function<T, U> f) {
+        public <U> Monad<U> map(@NotNull Function<T, U> f) {
+            if (f == null)
+                throw new NullPointerException();
             return compose(t -> F.unit(f.apply(t)));
         }
 
-        public void setHandler(Handler<AsyncResult<T>> handler) {
+        public void setHandler(@NotNull Handler<AsyncResult<T>> handler) {
+            if (handler == null)
+                throw new NullPointerException();
             compose(Future::succeededFuture).setHandler(handler);
         }
     }
