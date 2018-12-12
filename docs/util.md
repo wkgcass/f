@@ -21,6 +21,7 @@ F.value(t, () -> {})                  // want to return a value but still have s
                                       // usually: () -> F.value(t, () -> { ... })
                                       // helpful when you don't want to write braces with lambda
 F.runcb(cb -> { call(cb) })           // wrap a callback style api into a monad style api
+F.handler(Monad<T>)                   // return a Handler<AsyncResult<T>> object which will pass the null check
 
 Null                                  // a class that can never be instantiated, can be used in Monad<Null>
 <T> Null.value()                      // always returns null

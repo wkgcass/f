@@ -29,3 +29,11 @@ Operators are held in `class Op`.
 Other classes are holding their own functionalities.
 
 Except for container types (e.g. MList, Monad, Ptr), all classes provide their entrance methods with static modifier. (As a result, you can use `import static` to simplify the code.)
+
+## null check
+
+The null check is very strict.
+
+All container type and function parameters will reject null values, all methods with a `null` partner method (e.g. F.unit(T) and F.unit()) will reject null values. The parameter that may accept a null value argument will be annotated with `@Nullable`. The method that may (or always) return a null value will be annotated with `@Nullable`.
+
+However, containers will accept null values as their inside elements, e.g. Ptr.nil() will give you a Ptr that holds null value. MList also accepts null values when you add it into the list.
