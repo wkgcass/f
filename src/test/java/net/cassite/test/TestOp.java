@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import net.cassite.f.F;
 import net.cassite.f.Op;
 import net.cassite.f.Ptr;
+import net.cassite.f.ReadablePtr;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -135,7 +136,7 @@ public class TestOp {
                 @SuppressWarnings("unchecked") Object res = pa.bin(func, fb).result();
                 @SuppressWarnings("unchecked") Object exp = op.apply(a, b);
                 assertEquals(exp, res);
-                assertEquals(a, pa.value); // unchanged
+                assertEquals(a, pa.get()); // unchanged
             }
         }
     }
@@ -144,14 +145,14 @@ public class TestOp {
     public void unary() {
         Ptr<Integer> i = Ptr.of(1);
         assertEquals(2, i.unary(Op::leftIncr).result().intValue());
-        assertEquals(2, i.value.intValue());
+        assertEquals(2, i.get().intValue());
         assertEquals(2, i.unary(Op::rightIncr).result().intValue());
-        assertEquals(3, i.value.intValue());
+        assertEquals(3, i.get().intValue());
 
         assertEquals(2, i.unary(Op::leftDecr).result().intValue());
-        assertEquals(2, i.value.intValue());
+        assertEquals(2, i.get().intValue());
         assertEquals(2, i.unary(Op::rightDecr).result().intValue());
-        assertEquals(1, i.value.intValue());
+        assertEquals(1, i.get().intValue());
     }
 
     @SuppressWarnings("Duplicates")
@@ -196,7 +197,7 @@ public class TestOp {
                 @SuppressWarnings("unchecked") Object res = pa.bin(func, fb).result();
                 @SuppressWarnings("unchecked") Object exp = op.apply(a, b);
                 assertEquals(exp, res);
-                assertEquals(exp, pa.value); // changed
+                assertEquals(exp, pa.get()); // changed
             }
         }
     }
@@ -248,7 +249,7 @@ public class TestOp {
 
     @Test
     public void not() {
-        Ptr<Boolean> b = Ptr.of(true);
+        ReadablePtr<Boolean, ?> b = Ptr.ofReadonly(true);
         assertFalse(b.unary(Op::not).result());
 
         b = Ptr.of(false);
@@ -257,7 +258,7 @@ public class TestOp {
 
     @Test
     public void and() {
-        Ptr<Boolean> b = Ptr.of(true);
+        ReadablePtr<Boolean, ?> b = Ptr.ofReadonly(true);
         assertTrue(b.bin(Op::and, F.unit(true)).result());
         assertFalse(b.bin(Op::and, F.unit(false)).result());
 
@@ -268,7 +269,7 @@ public class TestOp {
 
     @Test
     public void or() {
-        Ptr<Boolean> b = Ptr.of(false);
+        ReadablePtr<Boolean, ?> b = Ptr.ofReadonly(false);
         assertTrue(b.bin(Op::or, F.unit(true)).result());
         assertFalse(b.bin(Op::or, F.unit(false)).result());
 

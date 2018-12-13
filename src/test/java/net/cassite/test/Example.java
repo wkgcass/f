@@ -164,6 +164,7 @@ public class Example {
         Assert.assertTrue(reaches[0]);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     public void loopBreakExample() {
         Future<List<String>> fuListOfNames =
@@ -198,9 +199,9 @@ public class Example {
 
         // run
 
-        Flow.exec(() -> a.value = 3)
+        Flow.exec(() -> a.store(3))
             .exec(() -> b.store(a.unary(Op::leftIncr)))
-            .exec(() -> c.store(F.unit(a.value + b.value)))
+            .exec(() -> c.store(F.unit(a.get() + b.get())))
             .returnPtr(c)
             .map(cc -> {
                 Assert.assertEquals(8, cc.intValue());

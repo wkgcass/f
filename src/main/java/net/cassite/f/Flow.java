@@ -78,7 +78,7 @@ public class Flow {
         public <T> Monad<T> returnPtr(@NotNull Ptr<T> ptr) {
             if (ptr == null)
                 throw new NullPointerException();
-            return Monad.transform(fu.map(v -> ptr.value));
+            return Monad.transform(fu.map(v -> ptr.get()));
         }
 
         public Monad<Null> returnNull() {

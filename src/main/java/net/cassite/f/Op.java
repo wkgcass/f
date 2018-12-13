@@ -147,10 +147,10 @@ public class Op {
     }
 
     // !
-    public static Monad<Boolean> not(@NotNull Ptr<Boolean> ptr) {
+    public static Monad<Boolean> not(@NotNull ReadablePtr<Boolean, ?> ptr) {
         if (ptr == null)
             throw new NullPointerException();
-        boolean b = ptr.value;
+        boolean b = ptr.get();
         return Monad.unit(!b);
     }
 
@@ -159,9 +159,9 @@ public class Op {
     public static <T extends Number> Monad<T> leftIncr(@NotNull Ptr<T> ptr) {
         if (ptr == null)
             throw new NullPointerException();
-        T num = ptr.value;
+        T num = ptr.get();
         Number n = addNumber(num, 1);
-        ptr.value = (T) n;
+        ptr.store((T) n);
         return Monad.unit((T) n);
     }
 
@@ -170,9 +170,9 @@ public class Op {
     public static <T extends Number> Monad<T> rightIncr(@NotNull Ptr<T> ptr) {
         if (ptr == null)
             throw new NullPointerException();
-        T num = ptr.value;
+        T num = ptr.get();
         Number n = addNumber(num, 1);
-        ptr.value = (T) n;
+        ptr.store((T) n);
         return Monad.unit(num);
     }
 
@@ -181,9 +181,9 @@ public class Op {
     public static <T extends Number> Monad<T> leftDecr(@NotNull Ptr<T> ptr) {
         if (ptr == null)
             throw new NullPointerException();
-        T num = ptr.value;
+        T num = ptr.get();
         Number n = subNumber(num, 1);
-        ptr.value = (T) n;
+        ptr.store((T) n);
         return Monad.unit((T) n);
     }
 
@@ -192,28 +192,28 @@ public class Op {
     public static <T extends Number> Monad<T> rightDecr(@NotNull Ptr<T> ptr) {
         if (ptr == null)
             throw new NullPointerException();
-        T num = ptr.value;
+        T num = ptr.get();
         Number n = subNumber(num, 1);
-        ptr.value = (T) n;
+        ptr.store((T) n);
         return Monad.unit(num);
     }
 
     // &&
-    public static Monad<Boolean> and(@NotNull Ptr<Boolean> ptr, @NotNull Future<Boolean> v) {
+    public static Monad<Boolean> and(@NotNull ReadablePtr<Boolean, ?> ptr, @NotNull Future<Boolean> v) {
         if (ptr == null)
             throw new NullPointerException();
         if (v == null)
             throw new NullPointerException();
-        return Monad.transform(v.map(vv -> ptr.value && vv));
+        return Monad.transform(v.map(vv -> ptr.get() && vv));
     }
 
     // ||
-    public static Monad<Boolean> or(@NotNull Ptr<Boolean> ptr, @NotNull Future<Boolean> v) {
+    public static Monad<Boolean> or(@NotNull ReadablePtr<Boolean, ?> ptr, @NotNull Future<Boolean> v) {
         if (ptr == null)
             throw new NullPointerException();
         if (v == null)
             throw new NullPointerException();
-        return Monad.transform(v.map(vv -> ptr.value || vv));
+        return Monad.transform(v.map(vv -> ptr.get() || vv));
     }
 
     // &=
@@ -223,9 +223,9 @@ public class Op {
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             T n = bitAndNumber(num, vv);
-            ptr.value = n;
+            ptr.store(n);
             return n;
         }));
     }
@@ -237,9 +237,9 @@ public class Op {
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             T n = bitOrNumber(num, vv);
-            ptr.value = n;
+            ptr.store(n);
             return n;
         }));
     }
@@ -251,9 +251,9 @@ public class Op {
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             T n = addNumber(num, vv);
-            ptr.value = n;
+            ptr.store(n);
             return n;
         }));
     }
@@ -265,9 +265,9 @@ public class Op {
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             T n = subNumber(num, vv);
-            ptr.value = n;
+            ptr.store(n);
             return n;
         }));
     }
@@ -279,9 +279,9 @@ public class Op {
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             T n = multiNumber(num, vv);
-            ptr.value = n;
+            ptr.store(n);
             return n;
         }));
     }
@@ -293,9 +293,9 @@ public class Op {
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             T n = divNumber(num, vv);
-            ptr.value = n;
+            ptr.store(n);
             return n;
         }));
     }
@@ -307,93 +307,93 @@ public class Op {
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             T n = modNumber(num, vv);
-            ptr.value = n;
+            ptr.store(n);
             return n;
         }));
     }
 
     // +
-    public static <T extends Number> Monad<T> plus(@NotNull Ptr<T> ptr, @NotNull Future<T> v) {
+    public static <T extends Number> Monad<T> plus(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
         if (ptr == null)
             throw new NullPointerException();
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             return addNumber(num, vv);
         }));
     }
 
     // -
-    public static <T extends Number> Monad<T> minus(@NotNull Ptr<T> ptr, @NotNull Future<T> v) {
+    public static <T extends Number> Monad<T> minus(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
         if (ptr == null)
             throw new NullPointerException();
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             return subNumber(num, vv);
         }));
     }
 
     // *
-    public static <T extends Number> Monad<T> multiply(@NotNull Ptr<T> ptr, @NotNull Future<T> v) {
+    public static <T extends Number> Monad<T> multiply(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
         if (ptr == null)
             throw new NullPointerException();
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             return multiNumber(num, vv);
         }));
     }
 
     // /
-    public static <T extends Number> Monad<T> divide(@NotNull Ptr<T> ptr, @NotNull Future<T> v) {
+    public static <T extends Number> Monad<T> divide(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
         if (ptr == null)
             throw new NullPointerException();
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             return divNumber(num, vv);
         }));
     }
 
     // %
-    public static <T extends Number> Monad<T> mod(@NotNull Ptr<T> ptr, @NotNull Future<T> v) {
+    public static <T extends Number> Monad<T> mod(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
         if (ptr == null)
             throw new NullPointerException();
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             return modNumber(num, vv);
         }));
     }
 
     // &
-    public static <T extends Number> Monad<T> bitAnd(@NotNull Ptr<T> ptr, @NotNull Future<T> v) {
+    public static <T extends Number> Monad<T> bitAnd(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
         if (ptr == null)
             throw new NullPointerException();
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             return bitAndNumber(num, vv);
         }));
     }
 
     // |
-    public static <T extends Number> Monad<T> bitOr(@NotNull Ptr<T> ptr, @NotNull Future<T> v) {
+    public static <T extends Number> Monad<T> bitOr(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
         if (ptr == null)
             throw new NullPointerException();
         if (v == null)
             throw new NullPointerException();
         return Monad.transform(v.map(vv -> {
-            T num = ptr.value;
+            T num = ptr.get();
             return bitOrNumber(num, vv);
         }));
     }

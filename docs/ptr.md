@@ -5,11 +5,27 @@
 ```
 <T> Ptr.of(T)                          // create a pointer with a value
 <T> Ptr.nil()                          // create a pointer to null
+<T> Ptr.of(() -> T, t -> {})           // create a pointer with getter and setter
+<T> Ptr.ofReadonly(T)                  // create a readonly pointer (type is ReadablePtr<T, ?>)
 
 ptr.store(Monad<T>)                    // return Monad<T> with the input value, and after the monad the store will complete
+ptr.store(T)                           // store the value, and return pointer itself
+ptr.storeNil()                         // let the pointer point to null
 <R> ptr.unary(self -> Monad<R>)        // unary operation. return Monad<R> with the returned value
 <R> ptr.bin((self, T) -> Monad<R>, T)  // binary operation. return Monad<R> with the returned value
-ptr.value                              // get current pointed value
+ptr.get()                              // get current pointed value
+
+ptr.getAs(Ptr.Int|Float|Long|...)      // get primitive value from the pointer
+
+// primitive transformer
+Ptr.Int                                // to int
+Ptr.Float                              // to float
+Ptr.Long                               // to long
+Ptr.Double                             // to double
+Ptr.Byte                               // to byte
+Ptr.Short                              // to short
+Ptr.Char                               // to char
+Ptr.Bool                               // to bool
 
 // unary
 Op::not           // !b
@@ -48,4 +64,6 @@ a.bin(Op::plus, b)                // plus a and b
     .compose(r -> ...);           // the compose lambda argument r will be the sum of a and b
 a.unary(Op::rightIncr)            // call something like "a++"
     .compose(r -> ...);           // the compose lambda argument r will be 1, and now a will hold value 2
+
+a.getAs(Ptr.Int)                  // the result is primitive int. The transform will be check by javac at compile time.
 ```

@@ -1153,11 +1153,11 @@ public class TestAll {
         Flow.exec(() -> p.store(F.unit(1)))
             .exec(() -> d.store(F.unit(2D)))
             .exec(() -> p.unary(Op::leftIncr))
-            .exec(() -> p.store(p.bin(Op::plus, F.unit(d.value.intValue()))))
+            .exec(() -> p.store(p.bin(Op::plus, F.unit(d.get().intValue()))))
             .returnPtr(p)
             .compose(pp -> {
                 assertEquals(4, pp.intValue());
-                assertEquals(2D, d.value, 0);
+                assertEquals(2D, d.get(), 0);
                 return F.unit();
             })
             .setHandler(assertOk());
@@ -1166,15 +1166,15 @@ public class TestAll {
     @Test
     public void flowExecProcess() {
         Ptr<Integer> p = Ptr.nil();
-        Flow.exec(() -> p.value = 3)
-            .returnFuture(() -> F.unit(p.value))
+        Flow.exec(() -> p.store(3))
+            .returnFuture(() -> F.unit(p.get()))
             .compose(pp -> {
                 assertEquals(3, pp.intValue());
                 return F.unit();
             })
             .setHandler(assertOk());
         Ptr<Integer> q = Ptr.nil();
-        Flow.exec(() -> q.value = 3).returnValue(() -> q.value)
+        Flow.exec(() -> q.store(3)).returnValue(q::get)
             .setHandler(r -> assertEquals(3, r.result().intValue()));
     }
 
@@ -1210,7 +1210,33 @@ public class TestAll {
     public void ptrStoreNull() {
         Ptr<Integer> p = Ptr.of(1);
         p.store(F.unit());
-        assertNull(p.value);
+        assertNull(p.get());
+
+        assertSame(p, p.store(1));
+        assertEquals(1, p.get().intValue());
+        assertSame(p, p.storeNil());
+        assertNull(p.get());
+    }
+
+    @Test
+    public void ptrGetterSetter() {
+        int[] i = {0};
+        Ptr<Integer> p = Ptr.of(() -> i[0], v -> i[0] = v);
+        assertEquals(0, p.get().intValue());
+        p.store(2);
+        assertEquals(2, p.get().intValue());
+    }
+
+    @Test
+    public void ptrReadonly() {
+        ReadablePtr<Integer, ?> p = Ptr.ofReadonly(1);
+        assertEquals(1, p.get().intValue());
+        @SuppressWarnings("unchecked")
+        Ptr<Integer> pp = (Ptr<Integer>) p;
+        try {
+            pp.store(3);
+        } catch (UnsupportedOperationException ignore) {
+        }
     }
 
     @Test
@@ -1218,10 +1244,10 @@ public class TestAll {
         Ptr<Integer> i = Ptr.of(0);
         MList<Integer> ls = MList.unit(1, 2, 3);
         Monad<MList<String>> res = Do.yield(() -> {
-            Integer ii = ls.get(i.value);
-            ++i.value;
+            Integer ii = ls.get(i.get());
+            i.store(i.get() + 1);
             return F.unit(ii.toString());
-        }).whileCond(() -> i.value < ls.size());
+        }).whileCond(() -> i.get() < ls.size());
         MList<String> resLs = res.result();
         assertEquals(MList.unit("1", "2", "3"), resLs);
     }
@@ -1235,14 +1261,14 @@ public class TestAll {
         MList<Integer> ls = MList.unit(1, 2, 3);
         Ptr<Integer> i = Ptr.of(0);
         res = Do.yield(() -> {
-            if (ls.get(i.value) != 2) {
-                String s = ls.get(i.value).toString();
-                ++i.value;
+            if (ls.get(i.get()) != 2) {
+                String s = ls.get(i.get()).toString();
+                i.store(i.get() + 1);
                 return F.unit(s);
             }
-            ++i.value;
+            i.store(i.get() + 1);
             return F.unit();
-        }).whileCond(() -> i.value < ls.size());
+        }).whileCond(() -> i.get() < ls.size());
         assertEquals(MList.unit("1", "3"), res.result());
         // only one round
         res = Do.yield(() -> F.unit(ls.get(0).toString())).whileCond(() -> false);
@@ -1267,9 +1293,9 @@ public class TestAll {
         // throw inside non first round
         Ptr<Integer> p = Ptr.of(-1);
         Do.yield(() -> {
-            ++p.value;
-            if (p.value < 1) {
-                return F.unit(ls.get(p.value).toString());
+            p.store(p.get() + 1);
+            if (p.get() < 1) {
+                return F.unit(ls.get(p.get()).toString());
             }
             throw new RuntimeException("test exception 2");
         }).whileCond(() -> true)
@@ -1279,11 +1305,11 @@ public class TestAll {
                 assertEquals("test exception 2", r.cause().getMessage());
             });
         // fail inside non first round
-        p.value = -1;
+        p.store(-1);
         Do.yield(() -> {
-            ++p.value;
-            if (p.value < 1) {
-                return F.unit(ls.get(p.value).toString());
+            p.store(p.get() + 1);
+            if (p.get() < 1) {
+                return F.unit(ls.get(p.get()).toString());
             }
             return F.fail("test exception x2");
         }).whileCond(() -> true)
@@ -1293,12 +1319,12 @@ public class TestAll {
             });
 
         // async whileCond
-        i.value = 0;
+        i.store(0);
         res = Do.yield(() -> {
-            Integer ii = ls.get(i.value);
-            ++i.value;
+            Integer ii = ls.get(i.get());
+            i.store(i.get() + 1);
             return F.unit(ii.toString());
-        }).whileCond(() -> F.unit(i.value < ls.size()));
+        }).whileCond(() -> F.unit(i.get() < ls.size()));
         MList<String> resLs = res.result();
         assertEquals(MList.unit("1", "2", "3"), resLs);
     }
@@ -1494,5 +1520,25 @@ public class TestAll {
         runUnsupported(() -> ite.add(123));
         runUnsupported(ite::remove);
         runUnsupported(() -> ite.set(123));
+    }
+
+    @Test
+    public void ptrAsPrimitive() {
+        Ptr<Integer> intPtr = Ptr.of(12);
+        assertEquals(12, intPtr.getAs(Ptr.Int));
+        Ptr<Float> floatPtr = Ptr.of(1.2f);
+        assertEquals(1.2f, floatPtr.getAs(Ptr.Float), 0);
+        Ptr<Long> longPtr = Ptr.of(13L);
+        assertEquals(13L, longPtr.getAs(Ptr.Long));
+        Ptr<Double> doublePtr = Ptr.of(1.2D);
+        assertEquals(1.2D, doublePtr.getAs(Ptr.Double), 0);
+        Ptr<Short> shortPtr = Ptr.of((short) 14);
+        assertEquals((short) 14, shortPtr.getAs(Ptr.Short));
+        Ptr<Byte> bytePtr = Ptr.of((byte) 15);
+        assertEquals((byte) 15, bytePtr.getAs(Ptr.Byte));
+        Ptr<Character> charPtr = Ptr.of('a');
+        assertEquals('a', charPtr.getAs(Ptr.Char));
+        Ptr<Boolean> boolPtr = Ptr.of(true);
+        assertTrue(boolPtr.getAs(Ptr.Bool));
     }
 }
