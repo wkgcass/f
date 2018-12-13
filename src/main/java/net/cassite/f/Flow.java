@@ -1,6 +1,6 @@
 package net.cassite.f;
 
-import com.sun.istack.internal.NotNull;
+import org.jetbrains.annotations.NotNull;
 import io.vertx.core.Future;
 
 import java.util.function.Supplier;

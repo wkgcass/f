@@ -1,6 +1,6 @@
 package net.cassite.f;
 
-import com.sun.istack.internal.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class Null {
     private Null() throws Throwable {
