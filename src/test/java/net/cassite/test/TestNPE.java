@@ -192,6 +192,24 @@ public class TestNPE {
         test(() -> Op.bitOr(null, null));
         test(() -> Op.bitOr(Ptr.of(1), null));
         test(() -> Op.bitOr(null, F.unit(1)));
+        test(() -> Op.gt(null, null));
+        test(() -> Op.gt(Ptr.of(1), null));
+        test(() -> Op.gt(null, F.unit(1)));
+        test(() -> Op.lt(null, null));
+        test(() -> Op.lt(Ptr.of(1), null));
+        test(() -> Op.lt(null, F.unit(1)));
+        test(() -> Op.ge(null, null));
+        test(() -> Op.ge(Ptr.of(1), null));
+        test(() -> Op.ge(null, F.unit(1)));
+        test(() -> Op.le(null, null));
+        test(() -> Op.le(Ptr.of(1), null));
+        test(() -> Op.le(null, F.unit(1)));
+        test(() -> Op.eq(null, null));
+        test(() -> Op.eq(Ptr.of(1), null));
+        test(() -> Op.eq(null, F.unit(1)));
+        test(() -> Op.ne(null, null));
+        test(() -> Op.ne(Ptr.of(1), null));
+        test(() -> Op.ne(null, F.unit(1)));
     }
 
     @Test

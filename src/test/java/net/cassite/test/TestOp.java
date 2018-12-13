@@ -1,10 +1,7 @@
 package net.cassite.test;
 
 import io.vertx.core.Future;
-import net.cassite.f.F;
-import net.cassite.f.Op;
-import net.cassite.f.Ptr;
-import net.cassite.f.ReadablePtr;
+import net.cassite.f.*;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -276,5 +273,57 @@ public class TestOp {
         b = Ptr.of(true);
         assertTrue(b.bin(Op::or, F.unit(true)).result());
         assertTrue(b.bin(Op::or, F.unit(false)).result());
+    }
+
+    @Test
+    public void gt() {
+        Ptr<Integer> p = Ptr.of(3);
+        assertTrue(p.bin(Op::gt, F.unit(2)).result());
+        assertFalse(p.bin(Op::gt, F.unit(3)).result());
+        assertFalse(p.bin(Op::gt, F.unit(4)).result());
+    }
+
+    @Test
+    public void lt() {
+        Ptr<Integer> p = Ptr.of(3);
+        assertTrue(p.bin(Op::lt, F.unit(4)).result());
+        assertFalse(p.bin(Op::lt, F.unit(3)).result());
+        assertFalse(p.bin(Op::lt, F.unit(2)).result());
+    }
+
+    @Test
+    public void ge() {
+        Ptr<Integer> p = Ptr.of(3);
+        assertTrue(p.bin(Op::ge, F.unit(2)).result());
+        assertTrue(p.bin(Op::ge, F.unit(3)).result());
+        assertFalse(p.bin(Op::ge, F.unit(4)).result());
+    }
+
+    @Test
+    public void le() {
+        Ptr<Integer> p = Ptr.of(3);
+        assertTrue(p.bin(Op::le, F.unit(4)).result());
+        assertTrue(p.bin(Op::le, F.unit(3)).result());
+        assertFalse(p.bin(Op::le, F.unit(2)).result());
+    }
+
+    @Test
+    public void eq() {
+        Ptr<Integer> p = Ptr.of(3);
+        assertTrue(p.bin(Op::eq, F.unit(3)).result());
+        assertFalse(p.bin(Op::eq, F.unit(4)).result());
+        Ptr<String> nil = Ptr.nil();
+        assertTrue(nil.bin(Op::eq, F.unit()).result());
+        assertFalse(nil.bin(Op::eq, F.unit("")).result());
+    }
+
+    @Test
+    public void ne() {
+        Ptr<Integer> p = Ptr.of(3);
+        assertTrue(p.bin(Op::ne, F.unit(4)).result());
+        assertFalse(p.bin(Op::ne, F.unit(3)).result());
+        Ptr<String> nil = Ptr.nil();
+        assertTrue(nil.bin(Op::ne, F.unit("")).result());
+        assertFalse(nil.bin(Op::ne, F.unit()).result());
     }
 }

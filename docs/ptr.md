@@ -51,6 +51,12 @@ Op::divide        // a / b
 Op::mod           // a % b
 Op::bitAnd        // a & b
 Op::bitOr         // a | b
+Op::gt            // a > b
+Op::ge            // a >= b
+Op::lt            // a < b
+Op::le            // a <= b
+Op::eq            // a == b (a.equals(b))
+Op::ne            // a != b (!a.equals(b))
 ```
 
 ## usage

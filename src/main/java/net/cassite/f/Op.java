@@ -3,6 +3,8 @@ package net.cassite.f;
 import com.sun.istack.internal.NotNull;
 import io.vertx.core.Future;
 
+import java.util.Objects;
+
 public class Op {
     private Op() {
     }
@@ -395,6 +397,78 @@ public class Op {
         return Monad.transform(v.map(vv -> {
             T num = ptr.get();
             return bitOrNumber(num, vv);
+        }));
+    }
+
+    // >
+    public static <T extends Number> Monad<Boolean> gt(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
+        if (ptr == null)
+            throw new NullPointerException();
+        if (v == null)
+            throw new NullPointerException();
+        return Monad.transform(v.map(vv -> {
+            T num = ptr.get();
+            return num.doubleValue() > vv.doubleValue();
+        }));
+    }
+
+    // <
+    public static <T extends Number> Monad<Boolean> lt(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
+        if (ptr == null)
+            throw new NullPointerException();
+        if (v == null)
+            throw new NullPointerException();
+        return Monad.transform(v.map(vv -> {
+            T num = ptr.get();
+            return num.doubleValue() < vv.doubleValue();
+        }));
+    }
+
+    // >=
+    public static <T extends Number> Monad<Boolean> ge(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
+        if (ptr == null)
+            throw new NullPointerException();
+        if (v == null)
+            throw new NullPointerException();
+        return Monad.transform(v.map(vv -> {
+            T num = ptr.get();
+            return num.doubleValue() >= vv.doubleValue();
+        }));
+    }
+
+    // <=
+    public static <T extends Number> Monad<Boolean> le(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
+        if (ptr == null)
+            throw new NullPointerException();
+        if (v == null)
+            throw new NullPointerException();
+        return Monad.transform(v.map(vv -> {
+            T num = ptr.get();
+            return num.doubleValue() <= vv.doubleValue();
+        }));
+    }
+
+    // ==
+    public static <T> Monad<Boolean> eq(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
+        if (ptr == null)
+            throw new NullPointerException();
+        if (v == null)
+            throw new NullPointerException();
+        return Monad.transform(v.map(vv -> {
+            T ptrValue = ptr.get();
+            return Objects.equals(ptrValue, vv);
+        }));
+    }
+
+    // !=
+    public static <T> Monad<Boolean> ne(@NotNull ReadablePtr<T, ?> ptr, @NotNull Future<T> v) {
+        if (ptr == null)
+            throw new NullPointerException();
+        if (v == null)
+            throw new NullPointerException();
+        return Monad.transform(v.map(vv -> {
+            T ptrValue = ptr.get();
+            return !Objects.equals(ptrValue, vv);
         }));
     }
 }
