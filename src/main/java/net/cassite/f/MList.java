@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collector;
 
 @JsonFormat(shape = JsonFormat.Shape.ARRAY)
@@ -102,6 +103,16 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
         if (mapper == null)
             throw new NullPointerException();
         return new LazyMListImpl<>(this.immutable(), (ls, u) -> ls.addAll(mapper.apply(u)));
+    }
+
+    default MList<E> filter(@NotNull Predicate<E> predicate) {
+        if (predicate == null)
+            throw new NullPointerException();
+        return new LazyMListImpl<>(this.immutable(), (ls, u) -> {
+            if (predicate.test(u)) {
+                ls.add(u);
+            }
+        });
     }
 
     @Override

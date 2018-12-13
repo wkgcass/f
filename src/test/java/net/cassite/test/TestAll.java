@@ -10,11 +10,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
@@ -1364,5 +1363,136 @@ public class TestAll {
         F.handler(tbd).handle(F.unit(2));
         assertTrue(tbd.isComplete());
         assertEquals(2, tbd.result().intValue());
+    }
+
+    @Test
+    public void filter() {
+        MList<Integer> m = MList.unit(1, 2, 3, 4);
+        m = m.filter(i -> i > 2);
+        assertEquals(MList.unit(3, 4), m);
+    }
+
+    @Test
+    public void lazyList() throws Exception {
+        MList<Integer> m = MList.unit(1, 2, 3, 4, 5, 6, 7);
+        m = m.filter(i -> i > 2 && i < 6);
+        assertEquals(4, m.get(1).intValue()); // drainUntil 1
+        assertEquals(MList.unit(3, 4, 5), m); // drain all
+        assertEquals(MList.unit(3, 4, 5), m); // already drain
+        m = m.filter(i -> i > 2 && i < 6);
+        Iterator<Integer> ite = m.iterator();
+        ListIterator<Integer> lsIt = m.listIterator();
+        ListIterator<Integer> listIte1 = m.listIterator(1);
+        assertEquals("LazyMListIteratorImpl", ite.getClass().getSimpleName());
+        assertEquals(ite.getClass(), lsIt.getClass());
+        assertEquals(listIte1.getClass(), listIte1.getClass());
+        Field f = ite.getClass().getDeclaredField("curIdx");
+        f.setAccessible(true);
+        assertEquals(0, f.get(ite));
+        assertEquals(0, f.get(lsIt));
+        assertEquals(1, f.get(listIte1));
+
+        Consumer<ListIterator<Integer>> test = (theIte) -> {
+            assertTrue(theIte.hasNext());
+            assertTrue(theIte.hasPrevious());
+            assertEquals(1, theIte.nextIndex());
+            assertEquals(0, theIte.previousIndex());
+            assertEquals(4, theIte.next().intValue()); // move next: return 4, at 5
+            assertEquals(2, theIte.nextIndex());
+            assertEquals(1, theIte.previousIndex());
+            assertTrue(theIte.hasNext());
+            assertTrue(theIte.hasPrevious());
+            assertEquals(5, theIte.next().intValue()); // move next: return 5, at oob
+            assertEquals(3, theIte.nextIndex());
+            assertEquals(2, theIte.previousIndex());
+            assertFalse(theIte.hasNext());
+            assertTrue(theIte.hasPrevious());
+            assertEquals(5, theIte.previous().intValue()); // move previous: return 5, at 5
+            assertEquals(4, theIte.previous().intValue()); // move previous: return 4, at 4
+            assertTrue(theIte.hasNext());
+            assertTrue(theIte.hasPrevious());
+            assertEquals(1, theIte.nextIndex());
+            assertEquals(0, theIte.previousIndex());
+            assertEquals(3, theIte.previous().intValue()); // move previous: return 3, at 3
+            assertTrue(theIte.hasNext());
+            assertFalse(theIte.hasPrevious());
+            assertEquals(0, theIte.nextIndex());
+            assertEquals(-1, theIte.previousIndex());
+            assertEquals(3, theIte.next().intValue()); // move next: return 3, at 4
+            assertTrue(theIte.hasNext());
+            assertTrue(theIte.hasPrevious());
+            assertEquals(1, theIte.nextIndex());
+            assertEquals(0, theIte.previousIndex());
+        };
+        test.accept(listIte1);
+        test.accept(Arrays.asList(3, 4, 5).listIterator(1)); // same as jdk impl
+        test.accept(new ArrayList<Integer>() {{
+            add(3);
+            add(4);
+            add(5);
+        }}.listIterator(1));
+    }
+
+    private void runOOB(Runnable r, int index, @SuppressWarnings("SameParameterValue") int size) {
+        try {
+            r.run();
+            fail();
+        } catch (IndexOutOfBoundsException e) {
+            assertTrue(e.getMessage(),
+                ("Index: " + index + ", Size: " + size).equals(e.getMessage())
+                    ||
+                    ("" + index).equals(e.getMessage())
+                    ||
+                    ("Index: " + index).equals(e.getMessage()));
+        }
+    }
+
+    private void runNSE(Runnable r) {
+        try {
+            r.run();
+            fail();
+        } catch (NoSuchElementException ignore) {
+        }
+    }
+
+    @SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
+    @Test
+    public void lazyListBounds() {
+        Consumer<List<Integer>> test = (ls) -> {
+            runOOB(() -> ls.get(-1), -1, 3);
+            runOOB(() -> ls.get(3), 3, 3);
+            runOOB(() -> ls.listIterator(4), 4, 3);
+            runOOB(() -> ls.listIterator(-1), -1, 3);
+            ListIterator<Integer> lastIte = ls.listIterator(3);
+            runNSE(lastIte::next);
+            ListIterator<Integer> firstIte = ls.listIterator(0);
+            runNSE(firstIte::previous);
+        };
+        test.accept(MList.unit(1, 2, 3, 4, 5, 6, 7).filter(i -> i > 2 && i < 6));
+        test.accept(Arrays.asList(3, 4, 5)); // same as jdk impl
+        test.accept(new ArrayList<Integer>() {{
+            add(3);
+            add(4);
+            add(5);
+        }});
+        ListIterator<Integer> ite = MList.<Integer>unit().listIterator(0);
+        assertFalse(ite.hasNext());
+        assertFalse(ite.hasPrevious());
+    }
+
+    private void runUnsupported(Runnable r) {
+        try {
+            r.run();
+            fail();
+        } catch (UnsupportedOperationException ignore) {
+        }
+    }
+
+    @Test
+    public void lazyListIteUnsupported() {
+        ListIterator<Integer> ite = MList.unit(1).map(i -> i).listIterator(0);
+        runUnsupported(() -> ite.add(123));
+        runUnsupported(ite::remove);
+        runUnsupported(() -> ite.set(123));
     }
 }

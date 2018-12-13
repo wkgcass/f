@@ -18,6 +18,7 @@ list.immutable()                          // transform the list into an immutabl
                                           // (might be the list itself if already immutable)
 <U> list.map(e -> U)                      // map each element to another value and join all values into a new IMMUTABLE list
 <U> list.flatMap(e -> List<U>)            // map each element to a new list, and join all elements in all lists into a new IMMUTABLE list
+list.filter(e -> boolean)                 // filter the list and create a new list
 list.head()                               // the first element in list
 list.tail()                               // a new IMMUTABLE list without the first element
 list.init()                               // a new IMMUTABLE list without the last element

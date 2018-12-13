@@ -46,20 +46,24 @@ class ImmutableMListImpl<E> extends AbstractList<E> implements MList<E>, Immutab
 
 class LazyMListImpl<E, U> extends AbstractList<U> implements MList<U>, Immutable {
     private final Iterator<E> ite;
-    private final List<U> newList = new ArrayList<>();
     private final BiConsumer<List<U>, E> fillElementFunc;
+    private final List<U> newList = new ArrayList<>();
 
     LazyMListImpl(List<E> oldList, BiConsumer<List<U>, E> fillElementFunc) {
         ite = oldList.iterator();
         this.fillElementFunc = fillElementFunc;
     }
 
-    @Override
-    public U get(int index) {
+    private void drainUntil(int index) {
         while (ite.hasNext() && newList.size() <= index) {
             E e = ite.next();
             fillElementFunc.accept(newList, e);
         }
+    }
+
+    @Override
+    public U get(int index) {
+        drainUntil(index);
         return newList.get(index);
     }
 
@@ -75,6 +79,95 @@ class LazyMListImpl<E, U> extends AbstractList<U> implements MList<U>, Immutable
     @Override
     public MList<U> subList(int fromIndex, int toIndex) {
         return MList.unit(super.subList(fromIndex, toIndex));
+    }
+
+    private IndexOutOfBoundsException oob(int index) {
+        return new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
+    }
+
+    private class LazyMListIteratorImpl implements ListIterator<U> {
+        int curIdx;
+
+        LazyMListIteratorImpl(int curIdx) {
+            this.curIdx = curIdx;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (newList.size() > curIdx) return true;
+            drainUntil(curIdx);
+            return newList.size() > curIdx;
+        }
+
+        @Override
+        public U next() {
+            if (hasNext()) {
+                return newList.get(curIdx++);
+            } else {
+                throw new NoSuchElementException();
+            }
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return curIdx != 0;
+        }
+
+        @Override
+        public U previous() {
+            if (hasPrevious()) {
+                return newList.get(--curIdx);
+            } else {
+                throw new NoSuchElementException();
+            }
+        }
+
+        @Override
+        public int nextIndex() {
+            return curIdx;
+        }
+
+        @Override
+        public int previousIndex() {
+            return curIdx - 1;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void set(U u) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void add(U u) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @Override
+    public Iterator<U> iterator() {
+        return listIterator();
+    }
+
+    @Override
+    public ListIterator<U> listIterator() {
+        return listIterator(0);
+    }
+
+    @Override
+    public ListIterator<U> listIterator(int index) {
+        if (index < 0) // throw for invalid index
+            throw oob(index);
+        if (index > newList.size()) {
+            drainUntil(index);
+            if (index > newList.size())
+                throw oob(index); // throw for oob
+        }
+        return new LazyMListIteratorImpl(index);
     }
 }
 

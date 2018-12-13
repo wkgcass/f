@@ -111,6 +111,7 @@ public class TestNPE {
         test(() -> MList.unit((Object[]) null));
         test(() -> MList.unit(1).map(null));
         test(() -> MList.unit(1).flatMap(null));
+        test(() -> MList.unit(1).filter(null));
     }
 
     @Test
