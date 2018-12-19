@@ -1,7 +1,10 @@
 package net.cassite.test;
 
 import io.vertx.core.Future;
-import net.cassite.f.*;
+import net.cassite.f.F;
+import net.cassite.f.Op;
+import net.cassite.f.Ptr;
+import net.cassite.f.ReadablePtr;
 import org.junit.Test;
 
 import java.util.Arrays;

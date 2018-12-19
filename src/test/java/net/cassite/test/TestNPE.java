@@ -10,7 +10,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
 public class TestNPE {
@@ -19,6 +20,10 @@ public class TestNPE {
             r.run();
             fail();
         } catch (NullPointerException ignore) {
+        } catch (IllegalArgumentException e) {
+            // for idea runtime assertion
+            // disable it in preference->build,exec,deploy->compiler
+            assertTrue(e.getMessage().startsWith("Argument for @NotNull parameter "));
         }
     }
 

@@ -1,7 +1,7 @@
 package net.cassite.f;
 
-import org.jetbrains.annotations.NotNull;
 import io.vertx.core.Future;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 

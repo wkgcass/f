@@ -1,8 +1,8 @@
 package net.cassite.f;
 
+import io.vertx.core.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import io.vertx.core.Future;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -17,30 +17,38 @@ public class For {
     public static <T> ForEach<T> each(@NotNull Iterable<T> it) {
         if (it == null)
             throw new NullPointerException();
-        return new ForEach<>(it.iterator());
+        return new ForEach<>(it.iterator(), true);
     }
+
 
     public static <T> ForEach<T> each(@NotNull T[] tArr) {
         if (tArr == null)
             throw new NullPointerException();
-        return new ForEach<>(Arrays.stream(tArr).iterator());
+        return new ForEach<>(Arrays.stream(tArr).iterator(), true);
     }
 
     public static <T> ForEach<T> each(@NotNull Iterator<T> ite) {
         if (ite == null)
             throw new NullPointerException();
-        return new ForEach<>(ite);
+        return new ForEach<>(ite, true);
+    }
+
+    static <T> ForEach<T> eachThrowBreak(Iterable<T> it) {
+        return new ForEach<>(it.iterator(), false);
     }
 
     private interface ClearLoop {
         void clear();
     }
 
-    private static <T, R> Future<Object> handleLoopFunc(MList<R> results, T t, Function<T, Future<R>> func, ClearLoop clearLoop) {
+    private static <T, R> Future<Object> handleLoopFunc(MList<R> results, T t, Function<T, Future<R>> func, ClearLoop clearLoop, boolean handleBreak) {
         Future<R> fu;
         try {
             fu = func.apply(t);
         } catch (Break b) {
+            if (!handleBreak) {
+                throw b;
+            }
             if (b.ins != null)
                 //noinspection unchecked
                 results.add((R) b.ins);
@@ -51,7 +59,7 @@ public class For {
         fu.setHandler(res -> {
             if (res.failed()) {
                 clearLoop.clear();
-                if (res.cause() instanceof Break) {
+                if (handleBreak && res.cause() instanceof Break) {
                     Break b = (Break) res.cause();
                     if (b.ins != null)
                         //noinspection unchecked
@@ -72,9 +80,11 @@ public class For {
 
     public static class ForEach<T> {
         private final Iterator<T> ite;
+        private final boolean handleBreak;
 
-        ForEach(Iterator<T> ite) {
+        ForEach(Iterator<T> ite, boolean handleBreak) {
             this.ite = ite;
+            this.handleBreak = handleBreak;
         }
 
         public <R> Monad<MList<R>> yield(@NotNull Function<T, Future<R>> func) {
@@ -90,7 +100,7 @@ public class For {
             T t = ite.next();
             return handleLoopFunc(results, t, func, () -> {
                 while (ite.hasNext()) ite.next();
-            }).compose(v -> handle(results, func));
+            }, handleBreak).compose(v -> handle(results, func));
         }
     }
 
@@ -162,7 +172,7 @@ public class For {
                     return condition.apply(ctx).compose(b -> {
                         if (!b) return F.unit();
                         if (!doContinue[0]) return F.unit();
-                        return handleLoopFunc(results, ctx, func, () -> doContinue[0] = false)
+                        return handleLoopFunc(results, ctx, func, () -> doContinue[0] = false, true)
                             .compose(v -> incr.apply(ctx))
                             .compose(v -> handle(doContinue, results, func));
                     });

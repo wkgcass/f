@@ -16,4 +16,8 @@ public class Export {
     public static <T> Collector<T, MList<T>, MList<T>> mutableCollector() {
         return MutableMListCollector.collector();
     }
+
+    public static <T> For.ForEach<T> eachThrowBreak(Iterable<T> it) {
+        return For.eachThrowBreak(it);
+    }
 }

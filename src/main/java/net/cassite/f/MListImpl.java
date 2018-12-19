@@ -1,5 +1,7 @@
 package net.cassite.f;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -16,6 +18,7 @@ class SimpleMutableMListImpl<E> extends ArrayList<E> implements MList<E> {
     }
 
     @Override
+    @NotNull
     public MList<E> subList(int fromIndex, int toIndex) {
         return new SimpleMutableMListImpl<>(super.subList(fromIndex, toIndex));
     }
@@ -39,6 +42,7 @@ class ImmutableMListImpl<E> extends AbstractList<E> implements MList<E>, Immutab
     }
 
     @Override
+    @NotNull
     public MList<E> subList(int fromIndex, int toIndex) {
         return MList.unit(super.subList(fromIndex, toIndex));
     }
@@ -77,6 +81,7 @@ class LazyMListImpl<E, U> extends AbstractList<U> implements MList<U>, Immutable
     }
 
     @Override
+    @NotNull
     public MList<U> subList(int fromIndex, int toIndex) {
         return MList.unit(super.subList(fromIndex, toIndex));
     }
@@ -149,16 +154,19 @@ class LazyMListImpl<E, U> extends AbstractList<U> implements MList<U>, Immutable
     }
 
     @Override
+    @NotNull
     public Iterator<U> iterator() {
         return listIterator();
     }
 
     @Override
+    @NotNull
     public ListIterator<U> listIterator() {
         return listIterator(0);
     }
 
     @Override
+    @NotNull
     public ListIterator<U> listIterator(int index) {
         if (index < 0) // throw for invalid index
             throw oob(index);
@@ -195,6 +203,7 @@ class TailMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Imm
     }
 
     @Override
+    @NotNull
     public MList<E> subList(int fromIndex, int toIndex) {
         return MList.unit(super.subList(fromIndex, toIndex));
     }
@@ -224,6 +233,7 @@ class InitMListImpl<E> extends AbstractList<E> implements MList<E>, List<E>, Imm
     }
 
     @Override
+    @NotNull
     public MList<E> subList(int fromIndex, int toIndex) {
         return MList.unit(super.subList(fromIndex, toIndex));
     }

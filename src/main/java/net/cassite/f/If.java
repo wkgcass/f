@@ -1,9 +1,9 @@
 package net.cassite.f;
 
-import org.jetbrains.annotations.NotNull;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
 import java.util.function.Function;
@@ -66,7 +66,7 @@ public class If {
                 throw new NullPointerException();
             boolean[] finished = {false};
             Monad<T> fu = F.tbd();
-            For.each(conditionMap.entrySet()).yield(e -> {
+            For.eachThrowBreak(conditionMap.entrySet()).yield(e -> {
                 // ignore when already finished
                 if (finished[0]) return F.unit();
 

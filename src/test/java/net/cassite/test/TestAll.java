@@ -1469,7 +1469,8 @@ public class TestAll {
                     ||
                     ("" + index).equals(e.getMessage())
                     ||
-                    ("Index: " + index).equals(e.getMessage()));
+                    ("Index: " + index).equals(e.getMessage())
+                    || e instanceof ArrayIndexOutOfBoundsException);
         }
     }
 
@@ -1540,5 +1541,27 @@ public class TestAll {
         assertEquals('a', charPtr.getAs(Ptr.Char));
         Ptr<Boolean> boolPtr = Ptr.of(true);
         assertTrue(boolPtr.getAs(Ptr.Bool));
+    }
+
+    @Test
+    public void breakInIf() throws Exception {
+        Monad<?> m = If.cond(F.unit(true)).run(() -> F.brk(123)).otherwise(() -> F.brk(345));
+        assertTrue(m.failed());
+        @SuppressWarnings("ThrowableNotThrown")
+        Throwable t = m.cause();
+        assertEquals("Break", t.getClass().getSimpleName());
+        Field f = t.getClass().getDeclaredField("ins");
+        f.setAccessible(true);
+        int i = (int) f.get(t);
+        assertEquals(123, i);
+    }
+
+    @Test
+    public void foreachThrowBreak() {
+        try {
+            Export.eachThrowBreak(MList.unit(1)).yield(e -> F.brk(123));
+        } catch (RuntimeException t) {
+            assertEquals("Break", t.getClass().getSimpleName());
+        }
     }
 }

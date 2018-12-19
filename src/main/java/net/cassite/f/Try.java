@@ -1,9 +1,9 @@
 package net.cassite.f;
 
-import org.jetbrains.annotations.NotNull;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
