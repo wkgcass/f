@@ -12,5 +12,7 @@ public interface IEventEmitter {
 
     <T> void once(@NotNull Symbol<T> event, @NotNull Consumer<T> handler);
 
+    <T> Monad<T> once(@NotNull Symbol<T> event);
+
     <T> void emit(@NotNull Symbol<T> event, @Nullable T data);
 }

@@ -1,14 +1,12 @@
 package net.cassite.test;
 
-import net.cassite.f.EventEmitter;
-import net.cassite.f.IEventEmitter;
-import net.cassite.f.MList;
-import net.cassite.f.Symbol;
+import net.cassite.f.*;
 import org.junit.Test;
 
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class TestEventEmitter {
@@ -161,6 +159,30 @@ public class TestEventEmitter {
             throw new RuntimeException("abc");
         });
         emitter.emit(event, 1);
+        assertEquals(2, step);
+    }
+
+    @Test
+    public void onceFuture() {
+        Symbol<Integer> event = Symbol.create();
+        EventEmitter emitter = new EventEmitter();
+        Monad<Integer> m = emitter.once(event);
+        m.compose(i -> {
+            assertEquals(1, i.intValue());
+            ++step;
+            assertEquals(1, step);
+            return F.unit();
+        });
+        emitter.emit(event, 1);
+        assertEquals(1, step);
+        m = emitter.once(event);
+        m.compose(i -> {
+            assertNull(i);
+            ++step;
+            assertEquals(2, step);
+            return F.unit();
+        });
+        emitter.emit(event, null);
         assertEquals(2, step);
     }
 }

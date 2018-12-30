@@ -274,6 +274,7 @@ public class TestNPE {
         test(() -> new EventEmitter().once(Symbol.create(), null));
         test(() -> new EventEmitter().once(null, d -> {
         }));
+        test(() -> new EventEmitter().once(null));
         test(() -> new EventEmitter().handlers(null));
         test(() -> new EventEmitter().remove(null, null));
         test(() -> new EventEmitter().remove(Symbol.create(), null));

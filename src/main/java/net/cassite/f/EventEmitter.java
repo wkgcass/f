@@ -50,6 +50,22 @@ public class EventEmitter implements IEventEmitter {
         addEvent(event, handler, true);
     }
 
+    @Override
+    public <T> Monad<T> once(@NotNull Symbol<T> event) {
+        if (event == null)
+            throw new NullPointerException();
+
+        Monad<T> m = F.tbd();
+        once(event, data -> {
+            if (data == null) {
+                m.complete();
+            } else {
+                m.complete(data);
+            }
+        });
+        return m;
+    }
+
     public void removeAll(@NotNull Symbol event) {
         if (event == null)
             throw new NullPointerException();
