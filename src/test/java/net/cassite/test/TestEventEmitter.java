@@ -66,6 +66,7 @@ public class TestEventEmitter {
     public void removeAll() {
         Symbol<Integer> event = Symbol.create();
         EventEmitter emitter = new EventEmitter();
+        emitter.removeAll(event); // does nothing
         emitter.on(event, data -> {
             assertEquals(1, data.intValue());
             ++step;
@@ -112,6 +113,7 @@ public class TestEventEmitter {
         assertEquals(3, step);
     }
 
+    @SuppressWarnings("SimplifiableJUnitAssertion")
     @Test
     public void handlers() {
         Symbol<Integer> event = Symbol.create();
@@ -125,10 +127,13 @@ public class TestEventEmitter {
         };
         emitter.on(event, handler);
         handlers = emitter.handlers(event);
-        assertEquals(MList.unit(handler), handlers);
+        assertEquals(1, handlers.size());
+        assertTrue(handlers.get(0).equals(handler));
         emitter.on(event, handler2);
         handlers = emitter.handlers(event);
-        assertEquals(MList.unit(handler, handler2), handlers);
+        assertEquals(2, handlers.size());
+        assertTrue(handlers.get(0).equals(handler));
+        assertTrue(handlers.get(1).equals(handler2));
     }
 
     @Test
@@ -184,5 +189,20 @@ public class TestEventEmitter {
         });
         emitter.emit(event, null);
         assertEquals(2, step);
+    }
+
+    @Test
+    public void onceFutureRemoved() {
+        Symbol<Integer> event = Symbol.create();
+        EventEmitter emitter = new EventEmitter();
+        Monad<Integer> m = emitter.once(event);
+        m.setHandler(r -> {
+            assertTrue(r.failed());
+            assertTrue(r.cause() instanceof IEventEmitter.HandlerRemovedException);
+            ++step;
+            assertEquals(1, step);
+        });
+        emitter.removeAll(event);
+        assertEquals(1, step);
     }
 }

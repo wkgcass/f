@@ -7,26 +7,62 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class EventEmitter implements IEventEmitter {
-    private Map<Symbol, LinkedList<ConsumerData>> handlers = new HashMap<>();
+    private Map<Symbol, LinkedList<HandlerData>> handlers = new HashMap<>();
 
-    static class ConsumerData {
+    static class HandlerData {
         boolean isOnce;
-        Consumer consumer;
+        Handler handler;
+    }
+
+    static class MonadHandler<T> implements Handler<T> {
+        private final Monad<T> tbd;
+
+        MonadHandler(Monad<T> tbd) {
+            this.tbd = tbd;
+        }
+
+        @Override
+        public void handleError(Throwable t) {
+            // do nothing
+        }
+
+        @Override
+        public void handleRemoved() {
+            tbd.fail(new HandlerRemovedException());
+        }
+
+        @Override
+        public void accept(T o) {
+            if (o == null) {
+                tbd.complete();
+            } else {
+                tbd.complete(o);
+            }
+        }
     }
 
     public EventEmitter() {
     }
 
+    @SuppressWarnings("WeakerAccess")
+    protected <T> Handler<T> transformConsumer(Consumer<T> consumer) {
+        return new ConsumerHandler<>(this, consumer);
+    }
+
     @SuppressWarnings("Java8MapApi")
-    private void addEvent(Symbol event, Consumer handler, boolean isOnce) {
-        LinkedList<ConsumerData> handlerList = handlers.get(event);
+    private <T> void addEvent(Symbol event, Consumer<T> handler, boolean isOnce) {
+        LinkedList<HandlerData> handlerList = handlers.get(event);
         if (handlerList == null) {
             handlerList = new LinkedList<>();
             handlers.put(event, handlerList);
         }
-        ConsumerData d = new ConsumerData();
+        HandlerData d = new HandlerData();
         d.isOnce = isOnce;
-        d.consumer = handler;
+        if (handler instanceof Handler) {
+            d.handler = (Handler) handler;
+        } else {
+            d.handler = transformConsumer(handler);
+        }
         handlerList.add(d);
     }
 
@@ -56,13 +92,7 @@ public class EventEmitter implements IEventEmitter {
             throw new NullPointerException();
 
         Monad<T> m = F.tbd();
-        once(event, data -> {
-            if (data == null) {
-                m.complete();
-            } else {
-                m.complete(data);
-            }
-        });
+        once(event, new MonadHandler<>(m));
         return m;
     }
 
@@ -70,7 +100,12 @@ public class EventEmitter implements IEventEmitter {
         if (event == null)
             throw new NullPointerException();
 
-        handlers.remove(event);
+        LinkedList<HandlerData> list = handlers.remove(event);
+        if (list == null)
+            return;
+        for (HandlerData d : list) {
+            d.handler.handleRemoved();
+        }
     }
 
     public void remove(@NotNull Symbol event, @NotNull Consumer handler) {
@@ -79,12 +114,24 @@ public class EventEmitter implements IEventEmitter {
         if (handler == null)
             throw new NullPointerException();
 
-        LinkedList<ConsumerData> handlerList = handlers.get(event);
+        LinkedList<HandlerData> handlerList = handlers.get(event);
         if (handlerList != null) {
-            if (handlerList.size() == 1 && handlerList.get(0).consumer.equals(handler)) {
-                handlers.remove(event);
+            if (handlerList.size() == 1 && handlerList.get(0).handler.equals(handler)) {
+                HandlerData d = handlers.remove(event).get(0);
+                d.handler.handleRemoved();
             } else {
-                handlerList.removeIf(d -> d.consumer.equals(handler));
+                Iterator<HandlerData> it = handlerList.iterator();
+                LinkedList<HandlerData> removed = new LinkedList<>();
+                while (it.hasNext()) {
+                    HandlerData d = it.next();
+                    if (handlerList.get(0).handler.equals(handler)) {
+                        it.remove();
+                        removed.add(d);
+                    }
+                }
+                for (HandlerData d : removed) {
+                    d.handler.handleRemoved();
+                }
             }
         }
     }
@@ -93,11 +140,11 @@ public class EventEmitter implements IEventEmitter {
         if (event == null)
             throw new NullPointerException();
 
-        LinkedList<ConsumerData> handlerList = handlers.get(event);
+        LinkedList<HandlerData> handlerList = handlers.get(event);
         if (handlerList == null)
             return MList.unit();
         //noinspection unchecked
-        return (MList) handlerList.stream().map(d -> d.consumer).collect(MList.collector());
+        return (MList) handlerList.stream().map(d -> d.handler).collect(MList.collector());
     }
 
     @SuppressWarnings("Java8MapApi")
@@ -106,21 +153,52 @@ public class EventEmitter implements IEventEmitter {
         if (event == null)
             throw new NullPointerException();
 
-        LinkedList<ConsumerData> handlerList = handlers.get(event);
+        LinkedList<HandlerData> handlerList = handlers.get(event);
         if (handlerList != null) {
-            Iterator<ConsumerData> it = handlerList.iterator();
+            Iterator<HandlerData> it = handlerList.iterator();
             while (it.hasNext()) {
-                ConsumerData c = it.next();
+                HandlerData c = it.next();
                 if (c.isOnce) {
                     it.remove();
                 }
                 try {
                     //noinspection unchecked
-                    c.consumer.accept(data);
+                    c.handler.accept(data);
                 } catch (Throwable t) {
-                    emit(error, t);
+                    c.handler.handleError(t);
                 }
             }
         }
+    }
+}
+
+class ConsumerHandler<T> implements IEventEmitter.Handler<T> {
+    private final IEventEmitter emitter;
+    private final Consumer<T> consumer;
+
+    ConsumerHandler(IEventEmitter emitter, Consumer<T> consumer) {
+        this.emitter = emitter;
+        this.consumer = consumer;
+    }
+
+    @Override
+    public void handleError(Throwable t) {
+        emitter.emit(IEventEmitter.error, t);
+    }
+
+    @Override
+    public void handleRemoved() {
+        // do nothing
+    }
+
+    @Override
+    public void accept(T t) {
+        consumer.accept(t);
+    }
+
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this || consumer.equals(obj);
     }
 }

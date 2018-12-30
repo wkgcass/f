@@ -8,6 +8,17 @@ import java.util.function.Consumer;
 public interface IEventEmitter {
     Symbol<Throwable> error = Symbol.create("error"); // error is a very common event
 
+    interface Handler<T> extends Consumer<T> {
+        void handleError(Throwable t);
+
+        void handleRemoved();
+    }
+
+    class HandlerRemovedException extends Exception {
+        HandlerRemovedException() {
+        }
+    }
+
     <T> void on(@NotNull Symbol<T> event, @NotNull Consumer<T> handler);
 
     <T> void once(@NotNull Symbol<T> event, @NotNull Consumer<T> handler);
