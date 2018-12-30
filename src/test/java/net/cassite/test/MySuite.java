@@ -13,6 +13,7 @@ import org.junit.runners.Suite;
     Example.class,
     TestCompilePass.class,
     TestFutureProxy.class,
+    TestEventEmitter.class,
     TestNPE.class,
     ForCoverageOnly.class
 })

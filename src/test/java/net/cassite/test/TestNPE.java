@@ -262,4 +262,26 @@ public class TestNPE {
         test(() -> While.cond((Supplier<Future<Boolean>>) null));
         test(() -> While.cond(() -> true).yield(null));
     }
+
+    @Test
+    public void symbol() {
+        test(() -> Symbol.create(null));
+        test(() -> new EventEmitter().on(null, null));
+        test(() -> new EventEmitter().on(Symbol.create(), null));
+        test(() -> new EventEmitter().on(null, d -> {
+        }));
+        test(() -> new EventEmitter().once(null, null));
+        test(() -> new EventEmitter().once(Symbol.create(), null));
+        test(() -> new EventEmitter().once(null, d -> {
+        }));
+        test(() -> new EventEmitter().handlers(null));
+        test(() -> new EventEmitter().remove(null, null));
+        test(() -> new EventEmitter().remove(Symbol.create(), null));
+        test(() -> new EventEmitter().remove(null, d -> {
+        }));
+        test(() -> new EventEmitter().removeAll(null));
+        test(() -> new EventEmitter().emit(null, null));
+        test(() -> new EventEmitter().emit(null, 1));
+        new EventEmitter().emit(Symbol.create(), null); // pass
+    }
 }

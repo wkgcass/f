@@ -195,4 +195,16 @@ public class TestCompilePass {
         Null n2 = Null.value();
         Assert.assertNull(n2);
     }
+
+    @SuppressWarnings("unused")
+    @Test
+    public void symbol() {
+        class S extends Symbol<Integer> {
+        }
+        class T extends Symbol<Float> {
+            public T(String name) {
+                super(name);
+            }
+        }
+    }
 }

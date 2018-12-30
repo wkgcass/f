@@ -1564,4 +1564,15 @@ public class TestAll {
             assertEquals("Break", t.getClass().getSimpleName());
         }
     }
+
+    @Test
+    public void symbol() {
+        Symbol<Integer> s = Symbol.create();
+        assertNull(s.name);
+        assertEquals("Symbol@" + Integer.toHexString(s.hashCode()), s.toString());
+
+        s = Symbol.create("a");
+        assertEquals("a", s.name);
+        assertEquals("Symbol(a)@" + Integer.toHexString(s.hashCode()), s.toString());
+    }
 }
