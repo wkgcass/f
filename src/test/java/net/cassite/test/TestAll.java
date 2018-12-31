@@ -14,6 +14,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
@@ -1574,5 +1575,13 @@ public class TestAll {
         s = Symbol.create("a");
         assertEquals("a", s.name);
         assertEquals("Symbol(a)@" + Integer.toHexString(s.hashCode()), s.toString());
+    }
+
+    @Test
+    public void applicativeSetHandler() {
+        Monad<Function<Integer, String>> m = F.unit(Object::toString);
+        Monad<Function<Integer, String>> res = m.as(F::app).setHandler(r -> {
+        });
+        assertSame(m, res);
     }
 }

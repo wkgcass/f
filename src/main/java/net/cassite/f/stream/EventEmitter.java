@@ -1,5 +1,6 @@
-package net.cassite.f;
+package net.cassite.f.stream;
 
+import net.cassite.f.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +13,37 @@ public class EventEmitter implements IEventEmitter {
     static class HandlerData {
         boolean isOnce;
         Handler handler;
+    }
+
+    static class ConsumerHandler<T> implements IEventEmitter.Handler<T> {
+        private final IEventEmitter emitter;
+        private final Consumer<T> consumer;
+
+        ConsumerHandler(IEventEmitter emitter, Consumer<T> consumer) {
+            this.emitter = emitter;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void handleError(Throwable t) {
+            emitter.emit(IEventEmitter.error, t);
+        }
+
+        @Override
+        public void handleRemoved() {
+            // do nothing
+        }
+
+        @Override
+        public void accept(T t) {
+            consumer.accept(t);
+        }
+
+        @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+        @Override
+        public boolean equals(Object obj) {
+            return obj == this || consumer.equals(obj);
+        }
     }
 
     static class MonadHandler<T> implements Handler<T> {
@@ -41,7 +73,34 @@ public class EventEmitter implements IEventEmitter {
         }
     }
 
-    public EventEmitter() {
+    static class PublisherHandler<T> implements Handler<T> {
+        private final Publisher<T> publisher;
+
+        PublisherHandler(Publisher<T> publisher) {
+            this.publisher = publisher;
+        }
+
+        @Override
+        public void handleError(Throwable t) {
+            // do nothing
+        }
+
+        @Override
+        public void handleRemoved() {
+            publisher.fail(new HandlerRemovedException());
+        }
+
+        @Override
+        public void accept(T t) {
+            publisher.publish(t);
+        }
+    }
+
+    public static EventEmitter create() {
+        return new EventEmitter();
+    }
+
+    private EventEmitter() {
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -74,6 +133,16 @@ public class EventEmitter implements IEventEmitter {
             throw new NullPointerException();
 
         addEvent(event, handler, false);
+    }
+
+    @Override
+    public <T> Stream<T> on(@NotNull Symbol<T> event) {
+        if (event == null)
+            throw new NullPointerException();
+
+        Publisher<T> publisher = Publisher.create();
+        on(event, new PublisherHandler<>(publisher));
+        return publisher.subscribe();
     }
 
     @Override
@@ -169,36 +238,5 @@ public class EventEmitter implements IEventEmitter {
                 }
             }
         }
-    }
-}
-
-class ConsumerHandler<T> implements IEventEmitter.Handler<T> {
-    private final IEventEmitter emitter;
-    private final Consumer<T> consumer;
-
-    ConsumerHandler(IEventEmitter emitter, Consumer<T> consumer) {
-        this.emitter = emitter;
-        this.consumer = consumer;
-    }
-
-    @Override
-    public void handleError(Throwable t) {
-        emitter.emit(IEventEmitter.error, t);
-    }
-
-    @Override
-    public void handleRemoved() {
-        // do nothing
-    }
-
-    @Override
-    public void accept(T t) {
-        consumer.accept(t);
-    }
-
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-    @Override
-    public boolean equals(Object obj) {
-        return obj == this || consumer.equals(obj);
     }
 }

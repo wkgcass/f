@@ -2,6 +2,8 @@ package net.cassite.test;
 
 import io.vertx.core.Future;
 import net.cassite.f.*;
+import net.cassite.f.stream.EventEmitter;
+import net.cassite.f.stream.Publisher;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -34,6 +36,7 @@ public class TestNPE {
         test(() -> a.map(null));
         test(() -> a.compose(null));
         test(() -> a.ap(null));
+        test(() -> a.setHandler(null));
     }
 
     @Test
@@ -266,23 +269,37 @@ public class TestNPE {
     @Test
     public void symbol() {
         test(() -> Symbol.create(null));
-        test(() -> new EventEmitter().on(null, null));
-        test(() -> new EventEmitter().on(Symbol.create(), null));
-        test(() -> new EventEmitter().on(null, d -> {
+        test(() -> EventEmitter.create().on(null, null));
+        test(() -> EventEmitter.create().on(Symbol.create(), null));
+        test(() -> EventEmitter.create().on(null, d -> {
         }));
-        test(() -> new EventEmitter().once(null, null));
-        test(() -> new EventEmitter().once(Symbol.create(), null));
-        test(() -> new EventEmitter().once(null, d -> {
+        test(() -> EventEmitter.create().once(null, null));
+        test(() -> EventEmitter.create().once(Symbol.create(), null));
+        test(() -> EventEmitter.create().once(null, d -> {
         }));
-        test(() -> new EventEmitter().once(null));
-        test(() -> new EventEmitter().handlers(null));
-        test(() -> new EventEmitter().remove(null, null));
-        test(() -> new EventEmitter().remove(Symbol.create(), null));
-        test(() -> new EventEmitter().remove(null, d -> {
+        test(() -> EventEmitter.create().once(null));
+        test(() -> EventEmitter.create().handlers(null));
+        test(() -> EventEmitter.create().remove(null, null));
+        test(() -> EventEmitter.create().remove(Symbol.create(), null));
+        test(() -> EventEmitter.create().remove(null, d -> {
         }));
-        test(() -> new EventEmitter().removeAll(null));
-        test(() -> new EventEmitter().emit(null, null));
-        test(() -> new EventEmitter().emit(null, 1));
-        new EventEmitter().emit(Symbol.create(), null); // pass
+        test(() -> EventEmitter.create().removeAll(null));
+        test(() -> EventEmitter.create().emit(null, null));
+        test(() -> EventEmitter.create().emit(null, 1));
+        test(() -> EventEmitter.create().on(null));
+        EventEmitter.create().emit(Symbol.create(), null); // pass
+    }
+
+    @Test
+    public void publisher() {
+        test(() -> Publisher.create().fail(null));
+        Publisher.create().publish(null); // pass
+    }
+
+    @Test
+    public void stream() {
+        test(() -> Publisher.create().subscribe().setHandler(null));
+        test(() -> Publisher.create().subscribe().map(null));
+        test(() -> Publisher.create().subscribe().compose(null));
     }
 }

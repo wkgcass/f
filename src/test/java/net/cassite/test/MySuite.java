@@ -14,6 +14,7 @@ import org.junit.runners.Suite;
     TestCompilePass.class,
     TestFutureProxy.class,
     TestEventEmitter.class,
+    TestStream.class,
     TestNPE.class,
     ForCoverageOnly.class
 })

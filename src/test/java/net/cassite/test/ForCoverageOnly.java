@@ -1,8 +1,8 @@
 package net.cassite.test;
 
-import net.cassite.f.EventEmitter;
 import net.cassite.f.MList;
 import net.cassite.f.Symbol;
+import net.cassite.f.stream.EventEmitter;
 import org.junit.Test;
 
 import java.lang.reflect.Constructor;
@@ -23,7 +23,7 @@ public class ForCoverageOnly {
     @SuppressWarnings({"ResultOfMethodCallIgnored", "EqualsWithItself", "SimplifiableJUnitAssertion"})
     @Test
     public void consumerHandler() {
-        EventEmitter e = new EventEmitter();
+        EventEmitter e = EventEmitter.create();
         Symbol<Integer> event = Symbol.create();
         e.on(event, data -> {
         });

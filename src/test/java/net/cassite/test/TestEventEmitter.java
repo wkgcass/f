@@ -1,6 +1,9 @@
 package net.cassite.test;
 
 import net.cassite.f.*;
+import net.cassite.f.stream.EventEmitter;
+import net.cassite.f.stream.IEventEmitter;
+import net.cassite.f.stream.Stream;
 import org.junit.Test;
 
 import java.util.function.Consumer;
@@ -15,7 +18,7 @@ public class TestEventEmitter {
     @Test
     public void eventEmit() {
         Symbol<Integer> event = Symbol.create();
-        IEventEmitter emitter = new EventEmitter();
+        IEventEmitter emitter = IEventEmitter.create();
         emitter.on(event, data -> {
             assertEquals(123, data.intValue());
             ++step;
@@ -27,7 +30,7 @@ public class TestEventEmitter {
     @Test
     public void on() {
         Symbol<Integer> event = Symbol.create();
-        IEventEmitter emitter = new EventEmitter();
+        IEventEmitter emitter = IEventEmitter.create();
         emitter.on(event, data -> {
             assertEquals(1, data.intValue());
             ++step;
@@ -46,7 +49,7 @@ public class TestEventEmitter {
     @Test
     public void once() {
         Symbol<Integer> event = Symbol.create();
-        IEventEmitter emitter = new EventEmitter();
+        IEventEmitter emitter = IEventEmitter.create();
         emitter.once(event, data -> {
             assertEquals(1, data.intValue());
             ++step;
@@ -65,7 +68,7 @@ public class TestEventEmitter {
     @Test
     public void removeAll() {
         Symbol<Integer> event = Symbol.create();
-        EventEmitter emitter = new EventEmitter();
+        EventEmitter emitter = EventEmitter.create();
         emitter.removeAll(event); // does nothing
         emitter.on(event, data -> {
             assertEquals(1, data.intValue());
@@ -86,7 +89,7 @@ public class TestEventEmitter {
     @Test
     public void remove() {
         Symbol<Integer> event = Symbol.create();
-        EventEmitter emitter = new EventEmitter();
+        EventEmitter emitter = EventEmitter.create();
         Consumer<Integer> handler = data -> {
             assertEquals(1, data.intValue());
             ++step;
@@ -117,7 +120,7 @@ public class TestEventEmitter {
     @Test
     public void handlers() {
         Symbol<Integer> event = Symbol.create();
-        EventEmitter emitter = new EventEmitter();
+        EventEmitter emitter = EventEmitter.create();
         MList<Consumer<Integer>> handlers = emitter.handlers(event);
         assertTrue(handlers.isEmpty());
 
@@ -139,7 +142,7 @@ public class TestEventEmitter {
     @Test
     public void removeBothOnAndOnce() {
         Symbol<Integer> event = Symbol.create();
-        EventEmitter emitter = new EventEmitter();
+        EventEmitter emitter = EventEmitter.create();
         Consumer<Integer> handler = data -> {
         };
         emitter.on(event, handler);
@@ -151,7 +154,7 @@ public class TestEventEmitter {
 
     @Test
     public void error() {
-        EventEmitter emitter = new EventEmitter();
+        EventEmitter emitter = EventEmitter.create();
         emitter.on(IEventEmitter.error, err -> {
             ++step;
             assertEquals(2, step);
@@ -170,7 +173,7 @@ public class TestEventEmitter {
     @Test
     public void onceFuture() {
         Symbol<Integer> event = Symbol.create();
-        EventEmitter emitter = new EventEmitter();
+        EventEmitter emitter = EventEmitter.create();
         Monad<Integer> m = emitter.once(event);
         m.compose(i -> {
             assertEquals(1, i.intValue());
@@ -191,12 +194,45 @@ public class TestEventEmitter {
         assertEquals(2, step);
     }
 
+    @SuppressWarnings("Duplicates")
     @Test
     public void onceFutureRemoved() {
         Symbol<Integer> event = Symbol.create();
-        EventEmitter emitter = new EventEmitter();
+        EventEmitter emitter = EventEmitter.create();
         Monad<Integer> m = emitter.once(event);
         m.setHandler(r -> {
+            assertTrue(r.failed());
+            assertTrue(r.cause() instanceof IEventEmitter.HandlerRemovedException);
+            ++step;
+            assertEquals(1, step);
+        });
+        emitter.removeAll(event);
+        assertEquals(1, step);
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Test
+    public void onStream() {
+        Symbol<Integer> event = Symbol.create();
+        IEventEmitter emitter = IEventEmitter.create();
+        Stream<Integer> s = emitter.on(event);
+        s.setHandler(r -> {
+            assertTrue(r.succeeded());
+            assertEquals(1, r.result().intValue());
+            ++step;
+            assertEquals(1, step);
+        });
+        emitter.emit(event, 1);
+        assertEquals(1, step);
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Test
+    public void onStreamRemoved() {
+        Symbol<Integer> event = Symbol.create();
+        EventEmitter emitter = EventEmitter.create();
+        Stream<Integer> s = emitter.on(event);
+        s.setHandler(r -> {
             assertTrue(r.failed());
             assertTrue(r.cause() instanceof IEventEmitter.HandlerRemovedException);
             ++step;

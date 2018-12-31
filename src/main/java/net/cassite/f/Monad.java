@@ -39,6 +39,14 @@ public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>>
         return new Monad<>(Future.succeededFuture());
     }
 
+    private Monad<T> transformMaybeSelf(Future<T> resultF) {
+        if (resultF == vertxFuture) {
+            return this;
+        } else {
+            return transform(resultF);
+        }
+    }
+
     @Override
     public boolean isComplete() {
         return vertxFuture.isComplete();
@@ -48,7 +56,7 @@ public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>>
     public Monad<T> setHandler(@NotNull Handler<AsyncResult<T>> handler) {
         if (handler == null)
             throw new NullPointerException();
-        return transform(vertxFuture.setHandler(handler));
+        return transformMaybeSelf(vertxFuture.setHandler(handler));
     }
 
     @Override
@@ -176,25 +184,25 @@ public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>>
     public Monad<T> recover(@NotNull Function<Throwable, Future<T>> mapper) {
         if (mapper == null)
             throw new NullPointerException();
-        return transform(vertxFuture.recover(mapper));
+        return transformMaybeSelf(vertxFuture.recover(mapper));
     }
 
     @Override
     public Monad<T> otherwise(@NotNull Function<Throwable, T> mapper) {
         if (mapper == null)
             throw new NullPointerException();
-        return transform(vertxFuture.otherwise(mapper));
+        return transformMaybeSelf(vertxFuture.otherwise(mapper));
     }
 
     @Override
     public Monad<T> otherwise(@NotNull T value) {
         if (value == null)
             throw new NullPointerException();
-        return transform(vertxFuture.otherwise(value));
+        return transformMaybeSelf(vertxFuture.otherwise(value));
     }
 
     @Override
     public Monad<T> otherwiseEmpty() {
-        return transform(vertxFuture.otherwiseEmpty());
+        return transformMaybeSelf(vertxFuture.otherwiseEmpty());
     }
 }

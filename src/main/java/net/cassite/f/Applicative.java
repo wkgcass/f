@@ -1,6 +1,8 @@
 package net.cassite.f;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
@@ -24,6 +26,14 @@ public class Applicative<T, R> implements IMonad<Function<T, R>>, AsTransformabl
         if (mapper == null)
             throw new NullPointerException();
         return monad.compose(mapper::apply);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Monad<Function<T, R>> setHandler(@NotNull Handler<AsyncResult<Function<T, R>>> handler) {
+        if (handler == null)
+            throw new NullPointerException();
+        return ((Monad<Function<T, R>>) monad).setHandler(handler);
     }
 
     public Monad<R> ap(@NotNull Future<T> fu) {
