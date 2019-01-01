@@ -1,9 +1,5 @@
 package net.cassite.f.stream;
 
-public interface IPublisher<T> {
+public interface IPublisher<T> extends ReactiveCloseable {
     Stream<T> subscribe();
-
-    boolean isClosed();
-
-    void close();
 }

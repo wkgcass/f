@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class Publisher<T> implements IPublisher<T> {
     private final Stream<T> stream = new Stream<>();
-    Runnable closeCallback;
 
     public static <T> Publisher<T> create() {
         return new Publisher<>();
@@ -36,10 +35,12 @@ public class Publisher<T> implements IPublisher<T> {
     }
 
     @Override
+    public void addCloseHandler(Runnable handler) {
+        stream.addCloseHandler(handler);
+    }
+
+    @Override
     public void close() {
         stream.close();
-        if (closeCallback != null) {
-            closeCallback.run();
-        }
     }
 }

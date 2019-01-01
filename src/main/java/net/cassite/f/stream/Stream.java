@@ -8,11 +8,12 @@ import net.cassite.f.Monad;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.function.Function;
 
 public class Stream<T> implements IPublisher<T>, ISubscriber<T> {
     private final LinkedHashSet<Handler<AsyncResult<T>>> handlers = new LinkedHashSet<>();
-    private Runnable closeCallback;
+    private LinkedList<Runnable> closeCallbacks = new LinkedList<>();
     private boolean closed = false;
 
     Stream() {
@@ -91,7 +92,7 @@ public class Stream<T> implements IPublisher<T>, ISubscriber<T> {
     private <U> void addHandler(Handler<AsyncResult<T>> handler, Stream<U> bondStream) {
         handlers.add(handler);
         if (bondStream != null) {
-            bondStream.closeCallback = () -> handlers.remove(handler);
+            bondStream.closeCallbacks.add(() -> handlers.remove(handler));
         }
     }
 
@@ -110,9 +111,10 @@ public class Stream<T> implements IPublisher<T>, ISubscriber<T> {
         closed = true;
         fail(new HandlerRemovedException());
         handlers.clear();
-        if (closeCallback != null) {
+        for (Runnable closeCallback : closeCallbacks) {
             closeCallback.run();
         }
+        closeCallbacks.clear();
     }
 
     @Override
@@ -133,5 +135,10 @@ public class Stream<T> implements IPublisher<T>, ISubscriber<T> {
     @Override
     public boolean isClosed() {
         return closed;
+    }
+
+    @Override
+    public void addCloseHandler(Runnable handler) {
+        closeCallbacks.add(handler);
     }
 }

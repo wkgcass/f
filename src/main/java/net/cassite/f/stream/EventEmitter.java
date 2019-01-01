@@ -144,7 +144,7 @@ public class EventEmitter implements IEventEmitter {
 
         Publisher<T> publisher = Publisher.create();
         PublisherHandler<T> handler = new PublisherHandler<>(publisher);
-        publisher.closeCallback = () -> remove(event, handler);
+        publisher.addCloseHandler(() -> remove(event, handler));
         on(event, handler);
         return publisher.subscribe();
     }
