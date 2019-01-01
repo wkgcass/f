@@ -87,11 +87,13 @@ public class EventEmitter implements IEventEmitter {
 
         @Override
         public void handleRemoved() {
-            publisher.fail(new HandlerRemovedException());
+            // assert !publisher.isClosed();
+            publisher.close();
         }
 
         @Override
         public void accept(T t) {
+            // assert !publisher.isClosed();
             publisher.publish(t);
         }
     }
@@ -141,7 +143,9 @@ public class EventEmitter implements IEventEmitter {
             throw new NullPointerException();
 
         Publisher<T> publisher = Publisher.create();
-        on(event, new PublisherHandler<>(publisher));
+        PublisherHandler<T> handler = new PublisherHandler<>(publisher);
+        publisher.closeCallback = () -> remove(event, handler);
+        on(event, handler);
         return publisher.subscribe();
     }
 

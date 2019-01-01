@@ -2,6 +2,7 @@ package net.cassite.test;
 
 import net.cassite.f.*;
 import net.cassite.f.stream.EventEmitter;
+import net.cassite.f.stream.HandlerRemovedException;
 import net.cassite.f.stream.IEventEmitter;
 import net.cassite.f.stream.Stream;
 import org.junit.Test;
@@ -202,7 +203,7 @@ public class TestEventEmitter {
         Monad<Integer> m = emitter.once(event);
         m.setHandler(r -> {
             assertTrue(r.failed());
-            assertTrue(r.cause() instanceof IEventEmitter.HandlerRemovedException);
+            assertTrue(r.cause() instanceof HandlerRemovedException);
             ++step;
             assertEquals(1, step);
         });
@@ -234,7 +235,7 @@ public class TestEventEmitter {
         Stream<Integer> s = emitter.on(event);
         s.setHandler(r -> {
             assertTrue(r.failed());
-            assertTrue(r.cause() instanceof IEventEmitter.HandlerRemovedException);
+            assertTrue(r.cause() instanceof HandlerRemovedException);
             ++step;
             assertEquals(1, step);
         });

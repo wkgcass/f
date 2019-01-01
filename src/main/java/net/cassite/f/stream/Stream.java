@@ -4,15 +4,16 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import net.cassite.f.F;
-import net.cassite.f.IMonad;
-import net.cassite.f.MList;
 import net.cassite.f.Monad;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.LinkedHashSet;
 import java.util.function.Function;
 
-public class Stream<T> implements IMonad<T>, IPublisher<T> {
-    private final MList<Handler<AsyncResult<T>>> handlers = MList.modifiable();
+public class Stream<T> implements IPublisher<T>, ISubscriber<T> {
+    private final LinkedHashSet<Handler<AsyncResult<T>>> handlers = new LinkedHashSet<>();
+    private Runnable closeCallback;
+    private boolean closed = false;
 
     Stream() {
     }
@@ -47,10 +48,17 @@ public class Stream<T> implements IMonad<T>, IPublisher<T> {
         }
     }
 
+    private void closeCheck() {
+        if (closed) {
+            throw new IllegalStateException("the stream is already closed");
+        }
+    }
+
     @Override
     public <U> Stream<U> map(@NotNull Function<T, U> mapper) {
         if (mapper == null)
             throw new NullPointerException();
+        closeCheck();
 
         return compose(t -> F.unit(mapper.apply(t)));
     }
@@ -59,9 +67,10 @@ public class Stream<T> implements IMonad<T>, IPublisher<T> {
     public <U> Stream<U> compose(@NotNull Function<T, Future<U>> mapper) {
         if (mapper == null)
             throw new NullPointerException();
+        closeCheck();
 
         Stream<U> uStream = new Stream<>();
-        setHandler(r -> {
+        addHandler(r -> {
             if (r.failed()) {
                 uStream.fail(r.cause());
             } else {
@@ -75,29 +84,54 @@ public class Stream<T> implements IMonad<T>, IPublisher<T> {
                     }
                 });
             }
-        });
+        }, uStream);
         return uStream;
+    }
+
+    private <U> void addHandler(Handler<AsyncResult<T>> handler, Stream<U> bondStream) {
+        handlers.add(handler);
+        if (bondStream != null) {
+            bondStream.closeCallback = () -> handlers.remove(handler);
+        }
     }
 
     @Override
     public Stream<T> setHandler(@NotNull Handler<AsyncResult<T>> handler) {
         if (handler == null)
             throw new NullPointerException();
+        closeCheck();
 
-        handlers.add(handler);
+        addHandler(handler, null);
         return this;
     }
 
     @Override
+    public void close() {
+        closed = true;
+        fail(new HandlerRemovedException());
+        handlers.clear();
+        if (closeCallback != null) {
+            closeCallback.run();
+        }
+    }
+
+    @Override
     public Stream<T> subscribe() {
+        closeCheck();
+
         Stream<T> s = new Stream<>();
-        setHandler(r -> {
+        addHandler(r -> {
             if (r.failed()) {
                 s.fail(r.cause());
             } else {
                 s.emit(r.result());
             }
-        });
+        }, s);
         return s;
+    }
+
+    @Override
+    public boolean isClosed() {
+        return closed;
     }
 }

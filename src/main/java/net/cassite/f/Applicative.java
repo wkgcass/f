@@ -3,11 +3,12 @@ package net.cassite.f;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import net.cassite.f.core.MonadLike;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class Applicative<T, R> implements IMonad<Function<T, R>>, AsTransformable<Applicative<T, R>> {
+public class Applicative<T, R> implements MonadLike<Function<T, R>>, AsTransformable<Applicative<T, R>> {
     private final Monad<? extends Function<T, R>> monad;
 
     Applicative(Monad<? extends Function<T, R>> monad) {

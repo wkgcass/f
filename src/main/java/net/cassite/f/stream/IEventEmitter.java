@@ -20,11 +20,6 @@ public interface IEventEmitter {
         void handleRemoved();
     }
 
-    class HandlerRemovedException extends Exception {
-        HandlerRemovedException() {
-        }
-    }
-
     <T> void on(@NotNull Symbol<T> event, @NotNull Consumer<T> handler);
 
     <T> Stream<T> on(@NotNull Symbol<T> event);

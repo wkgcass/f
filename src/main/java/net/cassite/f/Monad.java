@@ -3,6 +3,7 @@ package net.cassite.f;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import net.cassite.f.core.MonadLike;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,7 +15,7 @@ import java.util.function.Function;
  *
  * @param <T> the type
  */
-public class Monad<T> implements Future<T>, IMonad<T>, AsTransformable<Monad<T>> {
+public class Monad<T> implements Future<T>, MonadLike<T>, AsTransformable<Monad<T>> {
     private final Future<T> vertxFuture;
 
     Monad(Future<T> vertxFuture) {
