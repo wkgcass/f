@@ -74,9 +74,9 @@ public class EventEmitter implements IEventEmitter {
     }
 
     static class PublisherHandler<T> implements Handler<T> {
-        private final Publisher<T> publisher;
+        private final SimplePublisher<T> publisher;
 
-        PublisherHandler(Publisher<T> publisher) {
+        PublisherHandler(SimplePublisher<T> publisher) {
             this.publisher = publisher;
         }
 
@@ -142,7 +142,7 @@ public class EventEmitter implements IEventEmitter {
         if (event == null)
             throw new NullPointerException();
 
-        Publisher<T> publisher = Publisher.create();
+        SimplePublisher<T> publisher = Publisher.create();
         PublisherHandler<T> handler = new PublisherHandler<>(publisher);
         publisher.addCloseHandler(() -> remove(event, handler));
         on(event, handler);

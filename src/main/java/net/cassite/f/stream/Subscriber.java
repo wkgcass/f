@@ -8,13 +8,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public interface ISubscriber<T> extends MonadLike<T>, ReactiveCloseable {
+public interface Subscriber<T> extends MonadLike<T>, ReactiveCloseable {
     @Override
-    <U> ISubscriber<U> map(@NotNull Function<T, U> mapper);
+    <U> Subscriber<U> map(@NotNull Function<T, U> mapper);
 
     @Override
-    <U> ISubscriber<U> compose(@NotNull Function<T, Future<U>> mapper);
+    <U> Subscriber<U> compose(@NotNull Function<T, Future<U>> mapper);
 
     @Override
-    ISubscriber<T> setHandler(@NotNull Handler<AsyncResult<T>> handler);
+    Subscriber<T> setHandler(@NotNull Handler<AsyncResult<T>> handler);
 }

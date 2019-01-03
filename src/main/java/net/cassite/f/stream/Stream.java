@@ -11,7 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.function.Function;
 
-public class Stream<T> implements IPublisher<T>, ISubscriber<T> {
+public class Stream<T> implements Publisher<T>, Subscriber<T> {
     private final LinkedHashSet<Handler<AsyncResult<T>>> handlers = new LinkedHashSet<>();
     private LinkedList<Runnable> closeCallbacks = new LinkedList<>();
     private boolean closed = false;

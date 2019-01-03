@@ -2,10 +2,7 @@ package net.cassite.test;
 
 import net.cassite.f.F;
 import net.cassite.f.Symbol;
-import net.cassite.f.stream.EventEmitter;
-import net.cassite.f.stream.HandlerRemovedException;
-import net.cassite.f.stream.Publisher;
-import net.cassite.f.stream.Stream;
+import net.cassite.f.stream.*;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -16,7 +13,7 @@ public class TestStream {
     @SuppressWarnings("Duplicates")
     @Test
     public void setHandler() {
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         Stream<Integer> stream = pub.subscribe();
         stream.setHandler(r -> {
             assertTrue(r.succeeded());
@@ -30,7 +27,7 @@ public class TestStream {
 
     @Test
     public void map() {
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         pub.subscribe().map(i -> i + 10).setHandler(r -> {
             assertTrue(r.succeeded());
             assertEquals(11, r.result().intValue());
@@ -43,7 +40,7 @@ public class TestStream {
 
     @Test
     public void compose() {
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         pub.subscribe().compose(i -> F.unit(i + 20)).setHandler(r -> {
             assertTrue(r.succeeded());
             assertEquals(21, r.result().intValue());
@@ -58,7 +55,7 @@ public class TestStream {
     public void streamHandlerFail() {
         int[] i = {0};
         int[] j = {0};
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         Stream<Integer> stream = pub.subscribe();
         stream.setHandler(r -> {
             if (r.failed()) {
@@ -77,7 +74,7 @@ public class TestStream {
 
     @Test
     public void streamComposeFailedFuture() {
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         Stream<Integer> stream = pub.subscribe();
         stream.compose(i -> F.fail("abc")).setHandler(r -> {
             assertTrue(r.failed());
@@ -91,7 +88,7 @@ public class TestStream {
 
     @Test
     public void streamComposeThrow() {
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         Stream<Integer> stream = pub.subscribe();
         stream.compose(i -> {
             throw new RuntimeException("abc");
@@ -112,7 +109,7 @@ public class TestStream {
         int[] j = {0};
         int[] k = {0};
         int[] l = {0};
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         Stream<Integer> stream = pub.subscribe();
         stream.setHandler(r -> {
             if (r.failed()) {
@@ -146,7 +143,7 @@ public class TestStream {
         int[] j = {0};
         int[] k = {0};
         int[] l = {0};
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         Stream<Integer> stream = pub.subscribe().map(x -> x + 10);
         stream.setHandler(r -> {
             if (r.failed()) {
@@ -180,7 +177,7 @@ public class TestStream {
         int[] j = {0};
         int[] k = {0};
         int[] l = {0};
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         Stream<Integer> stream = pub.subscribe().compose(x -> F.unit(x + 10));
         stream.setHandler(r -> {
             if (r.failed()) {
@@ -238,7 +235,7 @@ public class TestStream {
 
     @Test
     public void plainPublisherClose() {
-        Publisher<Integer> pub = Publisher.create();
+        SimplePublisher<Integer> pub = Publisher.create();
         pub.subscribe().setHandler(r -> {
             assertTrue(r.failed());
             assertTrue(r.cause() instanceof HandlerRemovedException);
