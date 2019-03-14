@@ -64,7 +64,13 @@ public class Try {
             public <X> Monad<X> map(@NotNull Function<T, X> f) {
                 if (f == null)
                     throw new NullPointerException();
-                return compose(t -> F.unit(f.apply(t)));
+                return compose(t -> {
+                    X x = f.apply(t);
+                    if (x == null)
+                        return F.unit();
+                    else
+                        return F.unit(x);
+                });
             }
 
             public void setHandler(@NotNull Handler<AsyncResult<T>> handler) {

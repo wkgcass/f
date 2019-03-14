@@ -362,6 +362,27 @@ public class TestAll {
     }
 
     @Test
+    public void tryMapNull() {
+        int[] i = {0};
+        Try.code(() -> {
+            Monad<Integer> f = F.tbd();
+            f.fail(new Exception("123"));
+            return f;
+        }).except(Throwable.class, t -> {
+            String msg = t.getMessage();
+            return F.unit(Integer.parseInt(msg));
+        }).map(v -> {
+            assertEquals(123, v.intValue());
+            return Null.value;
+        }).setHandler(r -> {
+            assertTrue(r.succeeded());
+            assertNull(r.result());
+            ++i[0];
+        });
+        assertEquals(1, i[0]);
+    }
+
+    @Test
     public void tryFinally() {
         int[] i = {0};
         int[] j = {0};
