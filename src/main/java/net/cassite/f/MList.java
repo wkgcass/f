@@ -50,7 +50,7 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
             throw new NullPointerException();
         if (c instanceof MList) {
             //noinspection unchecked
-            return (MList<E>) c;
+            return ((MList<E>) c).immutable();
         }
         return new SimpleMutableMListImpl<E>(c).immutable();
     }
