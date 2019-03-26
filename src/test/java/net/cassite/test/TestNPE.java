@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import net.cassite.f.*;
 import net.cassite.f.stream.EventEmitter;
 import net.cassite.f.stream.Publisher;
+import net.cassite.f.utils.MListOp;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -292,5 +293,19 @@ public class TestNPE {
         test(() -> Publisher.create().subscribe().setHandler(null));
         test(() -> Publisher.create().subscribe().map(null));
         test(() -> Publisher.create().subscribe().compose(null));
+    }
+
+    @Test
+    public void mlistop() {
+        test(() -> MListOp.intOp(null));
+        test(() -> MListOp.longOp(null));
+        test(() -> MListOp.doubleOp(null));
+        test(() -> MListOp.floatOp(null));
+        test(() -> MListOp.op(null));
+        test(() -> MListOp.op(MList.unit()).sort(null));
+        test(() -> MListOp.op(MList.unit()).join(null));
+        test(() -> MListOp.op(MList.unit()).join(null, "", ""));
+        test(() -> MListOp.op(MList.unit()).join("", null, ""));
+        test(() -> MListOp.op(MList.unit()).join("", "", null));
     }
 }

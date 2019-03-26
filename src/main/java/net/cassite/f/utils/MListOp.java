@@ -12,22 +12,32 @@ public class MListOp {
     }
 
     public static MListIntOperator intOp(@NotNull MList<Integer> list) {
+        if (list == null)
+            throw new NullPointerException();
         return new MListIntOperator(list);
     }
 
     public static MListLongOperator longOp(@NotNull MList<Long> list) {
+        if (list == null)
+            throw new NullPointerException();
         return new MListLongOperator(list);
     }
 
     public static MListFloatOperator floatOp(@NotNull MList<Float> list) {
+        if (list == null)
+            throw new NullPointerException();
         return new MListFloatOperator(list);
     }
 
     public static MListDoubleOperator doubleOp(@NotNull MList<Double> list) {
+        if (list == null)
+            throw new NullPointerException();
         return new MListDoubleOperator(list);
     }
 
     public static <T> MListOperator<T> op(@NotNull MList<T> list) {
+        if (list == null)
+            throw new NullPointerException();
         return new MListOperator<>(list);
     }
 
@@ -39,14 +49,25 @@ public class MListOp {
         }
 
         public MList<T> sort(@NotNull Comparator<T> c) {
+            if (c == null)
+                throw new NullPointerException();
             return list.stream().sorted(c).collect(MList.collector());
         }
 
         public String join(@NotNull String separator) {
+            if (separator == null)
+                throw new NullPointerException();
             return join("", separator, "");
         }
 
         public String join(@NotNull String start, @NotNull String separator, @NotNull String end) {
+            if (start == null)
+                throw new NullPointerException();
+            if (separator == null)
+                throw new NullPointerException();
+            if (end == null)
+                throw new NullPointerException();
+
             StringBuilder sb = new StringBuilder(start);
             Iterator<? extends T> ite = list.iterator();
             if (ite.hasNext()) {
