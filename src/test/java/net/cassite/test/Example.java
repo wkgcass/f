@@ -201,10 +201,11 @@ public class Example {
 
         // run
 
-        Flow.exec(() -> a.store(3))
-            .exec(() -> b.store(a.unary(Op::leftIncr)))
-            .exec(() -> c.store(F.unit(a.get() + b.get())))
-            .returnPtr(c)
+        Flow flow = Flow.flow();
+        flow.next().statement = () -> a.store(3);
+        flow.next().store(b).async = () -> a.unary(Op::leftIncr);
+        flow.next().store(c).value = () -> a.get() + b.get();
+        flow.returnPtr(c)
             .map(cc -> {
                 Assert.assertEquals(8, cc.intValue());
                 return null;

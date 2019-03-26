@@ -69,20 +69,11 @@ public class TestNPE {
 
     @Test
     public void Flow() {
-        test(() -> Flow.store(null, null));
-        test(() -> Flow.store(Ptr.nil(), null));
-        test(() -> Flow.store(null, () -> F.unit(1)));
-        test(() -> Flow.exec((Runnable) null));
-        test(() -> Flow.exec((Supplier<Future<Object>>) null));
-        Flow.exec(() -> null);
-        test(() -> Flow.exec(() -> null).store(null, null));
-        test(() -> Flow.exec(() -> null).store(Ptr.nil(), null));
-        test(() -> Flow.exec(() -> null).store(null, () -> F.unit(1)));
-        test(() -> Flow.exec(() -> null).exec((Runnable) null));
-        test(() -> Flow.exec(() -> null).exec((Supplier<Future<Object>>) null));
-        test(() -> Flow.exec(() -> null).returnFuture(null));
-        test(() -> Flow.exec(() -> null).returnValue(null));
-        test(() -> Flow.exec(() -> null).returnPtr(null));
+        Flow flow = Flow.flow();
+        test(() -> flow.next().store(null));
+        test(() -> flow.returnFuture(null));
+        test(() -> flow.returnValue(null));
+        test(() -> flow.returnPtr(null));
     }
 
     @Test

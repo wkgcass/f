@@ -15,7 +15,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
 
@@ -1172,11 +1171,12 @@ public class TestAll {
     public void flowExecFuture() {
         Ptr<Integer> p = Ptr.nil();
         Ptr<Double> d = Ptr.of(1.2);
-        Flow.exec(() -> p.store(F.unit(1)))
-            .exec(() -> d.store(F.unit(2D)))
-            .exec(() -> p.unary(Op::leftIncr))
-            .exec(() -> p.store(p.bin(Op::plus, F.unit(d.get().intValue()))))
-            .returnPtr(p)
+        Flow flow = Flow.flow();
+        flow.next().store(p).async = () -> F.unit(1);
+        flow.next().store(d).async = () -> F.unit(2D);
+        flow.next().async = () -> p.unary(Op::leftIncr);
+        flow.next().store(p).async = () -> p.bin(Op::plus, F.unit(d.get().intValue()));
+        flow.returnPtr(p)
             .compose(pp -> {
                 assertEquals(4, pp.intValue());
                 assertEquals(2D, d.get(), 0);
@@ -1188,34 +1188,99 @@ public class TestAll {
     @Test
     public void flowExecProcess() {
         Ptr<Integer> p = Ptr.nil();
-        Flow.exec(() -> p.store(3))
-            .returnFuture(() -> F.unit(p.get()))
+        Flow flow = Flow.flow();
+        flow.next().store(p).value = () -> 3;
+        flow.returnFuture(() -> F.unit(p.get()))
             .compose(pp -> {
                 assertEquals(3, pp.intValue());
                 return F.unit();
             })
             .setHandler(assertOk());
         Ptr<Integer> q = Ptr.nil();
-        Flow.exec(() -> q.store(3)).returnValue(q::get)
+        flow.next().store(q).value = () -> 3;
+        flow.returnValue(q::get)
             .setHandler(r -> assertEquals(3, r.result().intValue()));
     }
 
     @Test
     public void flowStorePtr() {
         Ptr<Integer> p = Ptr.nil();
-        int i = Flow.store(p, () -> F.unit(123))
-            .exec(() -> p.unary(Op::leftIncr))
-            .returnPtr(p)
-            .result();
+        Flow flow = Flow.flow();
+        flow.next().store(p).value = () -> 123;
+        flow.next().async = () -> p.unary(Op::leftIncr);
+        int i = flow.returnPtr(p).result();
         assertEquals(124, i);
     }
 
     @Test
     public void flowReturnNull() {
-        Monad<Null> mNull = Flow.exec((Supplier<Future<Object>>) F::unit)
-            .returnNull();
+        Flow flow = Flow.flow();
+        flow.next().async = F::unit;
+        Monad<Null> mNull = flow.returnNull();
         assertNull(mNull.result());
         assertTrue(mNull.succeeded());
+    }
+
+    @Test
+    public void flowInvalid() {
+        Flow flow = Flow.flow();
+        Runnable testFail = () -> {
+            try {
+                flow.returnNull();
+                fail();
+            } catch (IllegalStateException ignore) {
+            }
+        };
+
+        Flow.Next nx = flow.next();
+        Runnable reset = () -> {
+            nx.async = null;
+            nx.statement = null;
+        };
+
+        // all null
+        testFail.run();
+        reset.run();
+
+        // async and statement
+        nx.async = F::unit;
+        nx.statement = () -> {
+        };
+        testFail.run();
+        reset.run();
+
+        // async and store
+        nx.async = F::unit;
+        Flow.StoreNext<Integer> sn = nx.store(Ptr.nil());
+        sn.value = () -> 3; // make sure the sn is valid
+        testFail.run();
+        reset.run();
+
+        // statement and store
+        nx.statement = () -> {
+        };
+        testFail.run();
+        reset.run();
+
+        // store again
+        try {
+            nx.store(Ptr.nil());
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+
+        // sn.async and sn.value
+        sn.async = F::unit;
+        testFail.run();
+
+        // sn all null
+        sn.async = null;
+        sn.value = null;
+        try {
+            flow.returnNull();
+            fail();
+        } catch (NullPointerException ignore) {
+        }
     }
 
     @Test
