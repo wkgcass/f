@@ -16,6 +16,7 @@ import org.junit.runners.Suite;
     TestEventEmitter.class,
     TestStream.class,
     TestNPE.class,
+    TestUtils.class,
     ForCoverageOnly.class
 })
 public class MySuite {

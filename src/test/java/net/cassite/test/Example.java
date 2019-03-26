@@ -5,6 +5,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import net.cassite.f.*;
+import net.cassite.f.utils.MListOp;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class Example {
@@ -208,5 +210,11 @@ public class Example {
                 return null;
             })
             .setHandler(assertOk());
+    }
+
+    @Test
+    public void mListOp() {
+        long sum = MList.unit(1, 2, 3, 4, 5).as(MListOp::intOp).sum();
+        assertEquals(15, sum);
     }
 }
