@@ -729,6 +729,15 @@ public class TestAll {
     }
 
     @Test
+    public void ifCondWithValue() {
+        If.cond(true).run(() -> F.unit(123))
+            .compose(i -> {
+                assertEquals(123, i.intValue());
+                return F.unit();
+            }).setHandler(assertOk());
+    }
+
+    @Test
     public void ifElseTrueCompose() {
         If.cond(F.unit(false)).run(() -> F.unit(456))
             .elseif(() -> F.unit(true)).run(() -> F.unit(123))

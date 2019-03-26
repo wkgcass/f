@@ -13,6 +13,10 @@ public class If {
     private If() {
     }
 
+    public static IfCondition cond(boolean condVal) {
+        return cond(F.unit(condVal));
+    }
+
     public static IfCondition cond(@NotNull Future<Boolean> condFu) {
         if (condFu == null)
             throw new NullPointerException();
