@@ -2,6 +2,7 @@ package net.cassite.f;
 
 import io.vertx.core.Future;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -12,6 +13,25 @@ import java.util.function.Function;
  */
 public interface ReadablePtr<T, P extends ReadablePtr<T, P>> {
     T get();
+
+    // ----------- begin helper functions ------------
+    default boolean isNull() {
+        return get() == null;
+    }
+
+    default boolean isPresent() {
+        return get() != null;
+    }
+
+    default boolean is(@Nullable T that) {
+        T t = get();
+        return (t == null && that == null) || (t != null && t.equals(that));
+    }
+
+    default boolean not(@Nullable T that) {
+        return !is(that);
+    }
+    // ----------- end helper functions ------------
 
     <R> Monad<R> unary(@NotNull Function<P, Future<R>> f);
 

@@ -1640,6 +1640,31 @@ public class TestAll {
     }
 
     @Test
+    public void ptrHelpers() {
+        Ptr<Integer> p = Ptr.nil();
+
+        assertTrue(p.isNull());
+        assertFalse(p.isPresent());
+
+        assertTrue(p.is(null));
+        assertFalse(p.is(1));
+
+        assertTrue(p.not(1));
+        assertFalse(p.not(null));
+
+        p.store(1);
+
+        assertFalse(p.isNull());
+        assertTrue(p.isPresent());
+
+        assertTrue(p.is(1));
+        assertFalse(p.is(null));
+
+        assertTrue(p.not(null));
+        assertFalse(p.not(1));
+    }
+
+    @Test
     public void breakInIf() throws Exception {
         Monad<?> m = If.cond(F.unit(true)).run(() -> F.brk(123)).otherwise(() -> F.brk(345));
         assertTrue(m.failed());
