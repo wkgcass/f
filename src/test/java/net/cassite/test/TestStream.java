@@ -52,6 +52,19 @@ public class TestStream {
     }
 
     @Test
+    public void composeNullFail() {
+        SimplePublisher<Integer> pub = Publisher.create();
+        pub.subscribe().compose(i -> null).setHandler(r -> {
+            assertTrue(r.failed());
+            assertTrue(r.cause() instanceof NullPointerException);
+            ++step;
+            assertEquals(1, step);
+        });
+        pub.publish(1);
+        assertEquals(1, step);
+    }
+
+    @Test
     public void streamHandlerFail() {
         int[] i = {0};
         int[] j = {0};

@@ -7,7 +7,7 @@ import net.cassite.f.core.MonadLike;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
+import java.util.function.*;
 
 /**
  * the monad instance of this library<br>
@@ -15,7 +15,7 @@ import java.util.function.Function;
  *
  * @param <T> the type
  */
-public class Monad<T> implements Future<T>, MonadLike<T>, AsTransformable<Monad<T>> {
+public class Monad<@Nullable T> implements Future<T>, MonadLike<T>, AsTransformable<Monad<T>> {
     private final Future<T> vertxFuture;
 
     Monad(Future<T> vertxFuture) {
@@ -30,9 +30,7 @@ public class Monad<T> implements Future<T>, MonadLike<T>, AsTransformable<Monad<
         }
     }
 
-    public static <E> Monad<E> unit(@NotNull E e) {
-        if (e == null)
-            throw new NullPointerException();
+    public static <E> Monad<E> unit(@Nullable E e) {
         return new Monad<>(Future.succeededFuture(e));
     }
 
@@ -48,6 +46,15 @@ public class Monad<T> implements Future<T>, MonadLike<T>, AsTransformable<Monad<
         }
     }
 
+    private <A, B> Function<A, Future<B>> mapperAvoidNull(Function<A, Future<B>> mapper) {
+        return a -> {
+            Future<B> b = mapper.apply(a);
+            if (b == null)
+                throw new NullPointerException();
+            return b;
+        };
+    }
+
     @Override
     public boolean isComplete() {
         return vertxFuture.isComplete();
@@ -61,9 +68,7 @@ public class Monad<T> implements Future<T>, MonadLike<T>, AsTransformable<Monad<
     }
 
     @Override
-    public void complete(@NotNull T result) {
-        if (result == null)
-            throw new NullPointerException();
+    public void complete(@Nullable T result) {
         vertxFuture.complete(result);
     }
 
@@ -87,9 +92,7 @@ public class Monad<T> implements Future<T>, MonadLike<T>, AsTransformable<Monad<
     }
 
     @Override
-    public boolean tryComplete(@NotNull T result) {
-        if (result == null)
-            throw new NullPointerException();
+    public boolean tryComplete(@Nullable T result) {
         return vertxFuture.tryComplete(result);
     }
 
@@ -151,29 +154,71 @@ public class Monad<T> implements Future<T>, MonadLike<T>, AsTransformable<Monad<
     }
 
     @Override
-    public <U> Monad<U> compose(@NotNull Function<T, Future<U>> mapper) {
+    public <U> Monad<U> compose(@NotNull Function<T, @NotNull Future<U>> mapper) {
         if (mapper == null)
             throw new NullPointerException();
-        return transform(vertxFuture.compose(mapper));
+        return transform(vertxFuture.compose(mapperAvoidNull(mapper)));
+    }
+
+    public <U> Monad<U> compose(@NotNull Supplier<@NotNull Future<U>> mapper) {
+        if (mapper == null)
+            throw new NullPointerException();
+        return compose(v -> {
+            Future<U> fu = mapper.get();
+            if (fu == null)
+                throw new NullPointerException();
+            return fu;
+        });
     }
 
     @Override
-    public <U> Monad<U> map(@NotNull Function<T, U> mapper) {
+    public <U> Monad<U> map(@NotNull Function<T, @Nullable U> mapper) {
         if (mapper == null)
             throw new NullPointerException();
         return transform(vertxFuture.map(mapper));
     }
 
     @Override
-    public <V> Monad<V> map(@NotNull V value) {
-        if (value == null)
-            throw new NullPointerException();
+    public <V> Monad<V> map(@Nullable V value) {
         return transform(vertxFuture.map(value));
+    }
+
+    public <U> Monad<U> map(@NotNull Supplier<@Nullable U> supplier) {
+        if (supplier == null)
+            throw new NullPointerException();
+        return map(v -> supplier.get());
     }
 
     @Override
     public <V> Monad<V> mapEmpty() {
         return transform(vertxFuture.mapEmpty());
+    }
+
+    public <V> Monad<V> mapEmpty(@NotNull Consumer<T> consumer) {
+        if (consumer == null)
+            throw new NullPointerException();
+        return map(t -> {
+            consumer.accept(t);
+            return null;
+        });
+    }
+
+    public <V> Monad<V> mapEmpty(@NotNull Runnable code) {
+        if (code == null)
+            throw new NullPointerException();
+        return map(t -> {
+            code.run();
+            return null;
+        });
+    }
+
+    public Monad<T> bypass(@NotNull Runnable code) {
+        if (code == null)
+            throw new NullPointerException();
+        return map(t -> {
+            code.run();
+            return t;
+        });
     }
 
     @Override
@@ -182,23 +227,21 @@ public class Monad<T> implements Future<T>, MonadLike<T>, AsTransformable<Monad<
     }
 
     @Override
-    public Monad<T> recover(@NotNull Function<Throwable, Future<T>> mapper) {
+    public Monad<T> recover(@NotNull Function<Throwable, @NotNull Future<T>> mapper) {
         if (mapper == null)
             throw new NullPointerException();
-        return transformMaybeSelf(vertxFuture.recover(mapper));
+        return transformMaybeSelf(vertxFuture.recover(mapperAvoidNull(mapper)));
     }
 
     @Override
-    public Monad<T> otherwise(@NotNull Function<Throwable, T> mapper) {
+    public Monad<T> otherwise(@NotNull Function<Throwable, @Nullable T> mapper) {
         if (mapper == null)
             throw new NullPointerException();
         return transformMaybeSelf(vertxFuture.otherwise(mapper));
     }
 
     @Override
-    public Monad<T> otherwise(@NotNull T value) {
-        if (value == null)
-            throw new NullPointerException();
+    public Monad<T> otherwise(@Nullable T value) {
         return transformMaybeSelf(vertxFuture.otherwise(value));
     }
 

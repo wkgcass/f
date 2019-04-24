@@ -18,9 +18,7 @@ public class F {
 
     // ------- start Monad initializer -------
 
-    public static <T> Monad<T> unit(@NotNull T value) {
-        if (value == null)
-            throw new NullPointerException();
+    public static <T> Monad<T> unit(@Nullable T value) {
         return Monad.unit(value);
     }
 
@@ -55,13 +53,13 @@ public class F {
     }
 
     @SuppressWarnings("unchecked")
-    public static <R> Monad<R> composite(@NotNull List<? extends Future<?>> monadList) {
+    public static <R> Monad<R> composite(@NotNull List<@NotNull ? extends Future<?>> monadList) {
         if (monadList == null)
             throw new NullPointerException();
         return flip((List) monadList).mapEmpty();
     }
 
-    public static <E> Monad<MList<E>> flip(@NotNull List<? extends Future<E>> monadList) {
+    public static <E> Monad<MList<E>> flip(@NotNull List<@NotNull ? extends Future<E>> monadList) {
         if (monadList == null)
             throw new NullPointerException();
         Monad<MList<E>> m = tbd();
@@ -122,9 +120,7 @@ public class F {
     }
 
     // break loop with value
-    public static <T> Monad<T> brk(@NotNull T result) {
-        if (result == null)
-            throw new NullPointerException();
+    public static <T> Monad<T> brk(@Nullable T result) {
         throw new Break(result);
     }
 
@@ -144,23 +140,8 @@ public class F {
         if (func == null)
             throw new NullPointerException();
         Monad<T> m = tbd();
-        Handler<AsyncResult<T>> cb = handler(m);
-        func.accept(cb);
+        func.accept(m);
         return m;
-    }
-
-    public static <T> Handler<AsyncResult<T>> handler(@NotNull Future<T> tbd) {
-        if (tbd == null)
-            throw new NullPointerException();
-        return r -> {
-            if (r.failed()) {
-                tbd.fail(r.cause());
-            } else if (r.result() == null) {
-                tbd.complete();
-            } else {
-                tbd.complete(r.result());
-            }
-        };
     }
 
     // ------- end util -------

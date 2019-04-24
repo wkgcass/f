@@ -13,7 +13,7 @@ public interface Subscriber<T> extends MonadLike<T>, ReactiveCloseable {
     <U> Subscriber<U> map(@NotNull Function<T, U> mapper);
 
     @Override
-    <U> Subscriber<U> compose(@NotNull Function<T, Future<U>> mapper);
+    <U> Subscriber<U> compose(@NotNull Function<T, @NotNull Future<U>> mapper);
 
     @Override
     Subscriber<T> setHandler(@NotNull Handler<AsyncResult<T>> handler);

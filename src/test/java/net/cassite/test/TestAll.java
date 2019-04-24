@@ -1475,19 +1475,6 @@ public class TestAll {
     }
 
     @Test
-    public void handler() {
-        Monad<Integer> tbd = F.tbd();
-        F.handler(tbd).handle(F.unit());
-        assertTrue(tbd.isComplete());
-        assertNull(tbd.result());
-
-        tbd = F.tbd();
-        F.handler(tbd).handle(F.unit(2));
-        assertTrue(tbd.isComplete());
-        assertEquals(2, tbd.result().intValue());
-    }
-
-    @Test
     public void filter() {
         MList<Integer> m = MList.unit(1, 2, 3, 4);
         m = m.filter(i -> i > 2);
@@ -1703,5 +1690,78 @@ public class TestAll {
         Monad<Function<Integer, String>> res = m.as(F::app).setHandler(r -> {
         });
         assertSame(m, res);
+    }
+
+    @Test
+    public void applicativeComposeNullFail() {
+        Monad<Function<Integer, String>> m = F.unit(Object::toString);
+        m.as(F::app).compose(v -> null).setHandler(r -> {
+            assertTrue(r.failed());
+            assertTrue(r.cause() instanceof NullPointerException);
+        });
+    }
+
+    @Test
+    public void composeNullFail() {
+        F.unit(1).compose(i -> null).setHandler(r -> {
+            assertTrue(r.failed());
+            assertTrue(r.cause() instanceof NullPointerException);
+        });
+
+        F.unit(1).compose(() -> null).setHandler(r -> {
+            assertTrue(r.failed());
+            assertTrue(r.cause() instanceof NullPointerException);
+        });
+
+        F.unit(1).compose(i -> {
+            throw new Error();
+        }).recover(err -> null).setHandler(r -> {
+            assertTrue(r.failed());
+            assertTrue(r.cause() instanceof NullPointerException);
+        });
+    }
+
+    @Test
+    public void extendedMonadFunctions() {
+        // bypass
+        {
+            {
+                int[] foo = {0};
+                F.unit(123).bypass(() -> foo[0] = 456).setHandler(r -> {
+                    assertEquals(123, r.result().intValue());
+                });
+                assertEquals(456, foo[0]);
+            }
+        }
+        // mapEmpty i -> {}
+        {
+            int[] foo = {0};
+            F.unit(123).mapEmpty(i -> foo[0] = i).setHandler(r -> {
+                assertTrue(r.succeeded());
+                assertNull(r.result());
+            });
+            assertEquals(123, foo[0]);
+        }
+        // mapEmpty () -> {}
+        {
+            int[] foo = {0};
+            F.unit(123).mapEmpty(() -> foo[0] = 456).setHandler(r -> {
+                assertTrue(r.succeeded());
+                assertNull(r.result());
+            });
+            assertEquals(456, foo[0]);
+        }
+        // map () -> v
+        {
+            F.unit(123).map(() -> 456).setHandler(r -> {
+                assertEquals(456, r.result().intValue());
+            });
+        }
+        // compose () -> monad
+        {
+            F.unit(123).compose(() -> F.unit(456)).setHandler(r -> {
+                assertEquals(456, r.result().intValue());
+            });
+        }
     }
 }

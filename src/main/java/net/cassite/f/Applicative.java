@@ -23,10 +23,15 @@ public class Applicative<T, R> implements MonadLike<Function<T, R>>, AsTransform
     }
 
     @Override
-    public <U> Monad<U> compose(@NotNull Function<Function<T, R>, Future<U>> mapper) {
+    public <U> Monad<U> compose(@NotNull Function<Function<T, R>, @NotNull Future<U>> mapper) {
         if (mapper == null)
             throw new NullPointerException();
-        return monad.compose(mapper::apply);
+        return monad.compose(f -> {
+            Future<U> u = mapper.apply(f);
+            if (u == null)
+                throw new NullPointerException();
+            return u;
+        });
     }
 
     @SuppressWarnings("unchecked")

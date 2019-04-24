@@ -10,13 +10,14 @@ import org.junit.Test;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
+@SuppressWarnings({"ConstantConditions"})
 public class TestNPE {
     private void test(Runnable r) {
         try {
@@ -55,17 +56,14 @@ public class TestNPE {
 
     @Test
     public void F() {
-        test(() -> F.unit(null));
         test(() -> F.fail((String) null));
         test(() -> F.fail((Throwable) null));
         test(() -> F.app(null));
         test(() -> F.composite(null));
         test(() -> F.flip(null));
-        test(() -> F.brk(null));
         test(() -> F.value(null, null));
         test(() -> F.value(1, null));
         test(() -> F.runcb(null));
-        test(() -> F.handler(null));
     }
 
     @Test
@@ -114,27 +112,28 @@ public class TestNPE {
         test(() -> MList.unit(1).filter(null));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void Monad() {
-        test(() -> Monad.unit(null));
         test(() -> Monad.unit(1).setHandler(null));
-        test(() -> Monad.unit(1).complete(null));
-        test(() -> Monad.unit(1).fail((String) null));
-        test(() -> Monad.unit(1).fail((Throwable) null));
-        test(() -> Monad.unit(1).tryComplete(null));
+        test(() -> F.tbd().fail((String) null));
+        test(() -> F.tbd().fail((Throwable) null));
         test(() -> Monad.unit(1).tryFail((String) null));
         test(() -> Monad.unit(1).tryFail((Throwable) null));
         test(() -> Monad.unit(1).handle(null));
-        test(() -> Monad.unit(1).compose(null));
+        test(() -> Monad.unit(1).compose((Function) null));
+        test(() -> Monad.unit(1).compose((Supplier) null));
         test(() -> Monad.unit(1).compose(null, null));
         test(() -> Monad.unit(1).compose(t -> {
         }, null));
         test(() -> Monad.unit(1).compose(null, F.unit()));
         test(() -> Monad.unit(1).map((Function<Integer, String>) null));
-        test(() -> Monad.unit(1).map((Object) null));
-        test(() -> Monad.unit(1).recover(null));
+        test(() -> Monad.unit(1).map((Supplier<String>) null));
+        test(() -> Monad.unit(1).mapEmpty((Consumer<Integer>) null));
+        test(() -> Monad.unit(1).mapEmpty((Runnable) null));
+        test(() -> Monad.unit(1).bypass(null));
         test(() -> Monad.unit(1).otherwise((Function<Throwable, Integer>) null));
-        test(() -> Monad.unit(1).otherwise((Integer) null));
+        test(() -> Monad.unit(1).recover(null));
     }
 
     @Test

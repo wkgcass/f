@@ -10,7 +10,7 @@ import java.util.function.Function;
 public interface MonadLike<T> {
     <U> MonadLike<U> map(@NotNull Function<T, U> mapper);
 
-    <U> MonadLike<U> compose(@NotNull Function<T, Future<U>> mapper);
+    <U> MonadLike<U> compose(@NotNull Function<T, @NotNull Future<U>> mapper);
 
     MonadLike<T> setHandler(@NotNull Handler<AsyncResult<T>> handler);
 }

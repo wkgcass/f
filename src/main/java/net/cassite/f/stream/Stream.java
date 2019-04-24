@@ -65,7 +65,7 @@ public class Stream<T> implements Publisher<T>, Subscriber<T> {
     }
 
     @Override
-    public <U> Stream<U> compose(@NotNull Function<T, Future<U>> mapper) {
+    public <U> Stream<U> compose(@NotNull Function<T, @NotNull Future<U>> mapper) {
         if (mapper == null)
             throw new NullPointerException();
         closeCheck();
@@ -77,6 +77,8 @@ public class Stream<T> implements Publisher<T>, Subscriber<T> {
             } else {
                 T t = r.result();
                 Future<U> uFu = mapper.apply(t);
+                if (uFu == null)
+                    throw new NullPointerException();
                 uFu.setHandler(r2 -> {
                     if (r2.failed()) {
                         uStream.fail(r2.cause());
