@@ -1,22 +1,17 @@
 # for-each
 
-## syntax
-
-```
-<R>
-For.each(Iterable<T>|Iterator<T>|T[])
-   .yield(t -> Monad<R>)        // Monad<MList<R>>
-
-F.brk([R]?)                     // break with or without the last value to yield
-
-there will be no `null` value in the yield result list
-```
-
-## usage
+Run async operation on each element of an `Iterable|Iterator|Array`.
 
 ```java
-getProducts().compose(list ->                          // get all products
-   For.each(list)                                      // for each element in list
-      .yield(e -> getDetail(e.id)))                    // getDetail by product id and yield the result
-      .compose(detailList -> process(detailList))      // handle the detailList
+For.each(list).yield(element -> monad)
 ```
+
+It will run operations defined by the lambda in `yield` on each element in `list`, and then join the return values on the `monad` into one list, which will be the final result of the for-each expression. Note that: null values will not be recorded in the list.
+
+## break
+
+You can break a for-each loop using `F.brk()`, or use `F.brk(value)` to break the loop with a last value (which will be added into the result list).
+
+## continue
+
+Since null values won't be recorded, you can simply return `F.unit()` to `continue` the iteration.

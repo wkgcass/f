@@ -12,6 +12,8 @@
 1. [ptr](ptr.md) pointer, a value container
 1. [flow](flow.md) code flow
 1. [util](util.md) utilities
+1. [event-emitter](event-emitter.md) the event emitter
+1. [stream](stream.md) the event stream
 
 ## relations to vertx and java
 
@@ -32,8 +34,14 @@ Except for container types (e.g. MList, Monad, Ptr), all classes provide their e
 
 ## null check
 
-The null check is very strict.
+Null checks are performed on all public methods. The following input arguments should not be null:
 
-All container type and function parameters will reject null values, all methods with a `null` partner method (e.g. F.unit(T) and F.unit()) will reject null values. The parameter that may accept a null value argument will be annotated with `@Nullable`. The method that may (or always) return a null value will be annotated with `@Nullable`.
+* monad/future objects
+* functions
+* container objects
 
-However, containers will accept null values as their inside elements, e.g. Ptr.nil() will give you a Ptr that holds null value. MList also accepts null values when you add it into the list.
+Also, if a function would return a monad/future object, then the returned value should not be null.
+
+For example:
+
+The compose method takes a function, then the function should not be null; the function should returns a future object, then the returned value should not be null.

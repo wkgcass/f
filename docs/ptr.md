@@ -2,7 +2,7 @@
 
 ## syntax
 
-```
+```java
 <T> Ptr.of(T)                          // create a pointer with a value
 <T> Ptr.nil()                          // create a pointer to null
 <T> Ptr.of(() -> T, t -> {})           // create a pointer with getter and setter
@@ -11,10 +11,13 @@
 ptr.store(Monad<T>)                    // return Monad<T> with the input value, and after the monad the store will complete
 ptr.store(T)                           // store the value, and return pointer itself
 ptr.storeNil()                         // let the pointer point to null
-<R> ptr.unary(self -> Monad<R>)        // unary operation. return Monad<R> with the returned value
-<R> ptr.bin((self, T) -> Monad<R>, T)  // binary operation. return Monad<R> with the returned value
-ptr.get()                              // get current pointed value
 
+ptr.get()                              // get current pointed value
+```
+
+You can retrieve primitives directly from pointers with compile-time type checking(e.g. `Ptr<Long> ptr; ptr.getAs(Ptr.Int)` will not compile).
+
+```java
 ptr.getAs(Ptr.Int|Float|Long|...)      // get primitive value from the pointer
 
 // primitive transformer
@@ -26,6 +29,13 @@ Ptr.Byte                               // to byte
 Ptr.Short                              // to short
 Ptr.Char                               // to char
 Ptr.Bool                               // to bool
+```
+
+We also provide some simplified operators for async operations.
+
+```java
+<R> ptr.unary(self -> Monad<R>)        // unary operation. return Monad<R> with the returned value
+<R> ptr.bin((self, T) -> Monad<R>, T)  // binary operation. return Monad<R> with the returned value
 
 // unary
 Op::not           // !b

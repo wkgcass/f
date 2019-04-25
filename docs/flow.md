@@ -1,24 +1,40 @@
 # flow
 
+The `flow` class is built for writing long async code more fluently.
+
+# WARNING: The class may be fully rewrote in the future.
+
+You may notice the syntax and implementation a little strange. This is a considerably nice syntax summarized in practical use. If I have some better idea, I will fully rewrite this class. If you have some idea, welcome to share them with me through issues.
+
 ## syntax
 
-```
-<R>
-Flow
-   [.exec(() -> ?|Monad<?>)]*
-    .returnPtr(Ptr<R>)|.returnValue(() -> R)|.returnFuture(() -> Monad<R>)|.returnNull()
-
-// exec result is FlowStmt without any generic info. each `exec` is considered as a separated statement.
-// return result will be Monad<R>
-```
-
-## usage
+### Create flow object
 
 ```java
-int id = xxx;                                                           // some id
-Ptr<Server> server = Ptr.nil();                                         // create a nil pointer for holding server
-Ptr<ServerGroup> group = Ptr.nil();                                     // create a nil pointer for holding group
-Flow.exec(() -> server.assign(getServer(id)))                           // get and assign server
-    .exec(() -> group.assign(getServerGroup(server.value.groupId)))     // get and assign group
-    .returnValue(() -> new Tuple2<>(server.value, group.value))         // return a tuple of server and group
+Flow flow = Flow.flow();
+```
+
+### Handling
+
+There are many aspects and ways of adding async operations to the flow:
+
+```java
+flow.next().async = () -> monad;       // run an async operation
+flow.next().statement = () -> { ... }; // run a sync operation
+
+flow.next().store(Ptr ptr).async = () -> monad; // run an async operation and store the value in the pointer
+flow.next().store(Ptr ptr).value = () -> value; // run a sync operation and store the value in the pointer
+```
+
+You may notice here lambda is not passed into a method, but assigned to a field. This is because we can omit the braces surrounding the lambda.
+
+### Returning
+
+To use the flow with the outside world, you have to "return" a moand from flow.
+
+```java
+flow.returnFuture(() -> monad)  // run the whole flow then return this moand.
+flow.returnValue(() -> value)   // run the whole flow then return a monad bond with your value.
+flow.returnPtr(ptr)             // run the whole flow then return what is contained in the ptr with a monad.
+flow.returnNull()               // run the whole flow then return null monad.
 ```
