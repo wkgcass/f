@@ -115,6 +115,7 @@ public interface MList<E> extends List<E>, AsTransformable<MList<E>> {
         });
     }
 
+    @NotNull
     @Override
     MList<E> subList(int from, int to);
 }

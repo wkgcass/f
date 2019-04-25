@@ -220,7 +220,6 @@ public class TestNPE {
         }));
         test(() -> Ptr.ofReadonly(null));
         test(() -> Ptr.of(1).store((Future<Integer>) null));
-        test(() -> Ptr.of(1).store((Integer) null));
         test(() -> Ptr.of(1).unary(null));
         test(() -> Ptr.of(1).bin(null, null));
         test(() -> Ptr.of(1).bin(Op::plus, null));

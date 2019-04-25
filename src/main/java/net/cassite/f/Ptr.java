@@ -2,6 +2,7 @@ package net.cassite.f;
 
 import io.vertx.core.Future;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -60,9 +61,7 @@ public class Ptr<T> implements ReadablePtr<T, Ptr<T>>, WritablePtr<T>, AsTransfo
     }
 
     @Override
-    public Ptr<T> store(@NotNull T t) {
-        if (t == null)
-            throw new NullPointerException();
+    public Ptr<T> store(@Nullable T t) {
         setter.accept(t);
         return this;
     }

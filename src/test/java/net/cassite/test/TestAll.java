@@ -748,6 +748,16 @@ public class TestAll {
     }
 
     @Test
+    public void ifElsePrimitive() {
+        If.cond(F.unit(false)).run(() -> F.unit(456))
+            .elseif(true).run(() -> F.unit(123))
+            .compose(i -> {
+                assertEquals(123, i.intValue());
+                return F.unit();
+            }).setHandler(assertOk());
+    }
+
+    @Test
     public void ifElseOtherwiseCompose() {
         If.cond(F.unit(false)).run(() -> F.unit(789))
             .elseif(() -> F.unit(false)).run(() -> F.unit(456))

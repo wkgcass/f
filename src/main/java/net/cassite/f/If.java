@@ -3,6 +3,7 @@ package net.cassite.f;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import net.cassite.f.core.MonadLike;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
@@ -37,11 +38,15 @@ public class If {
         }
     }
 
-    public static class IfStatement<T> {
+    public static class IfStatement<T> implements MonadLike<T> {
         private final LinkedHashMap<Supplier<Future<Boolean>>, Supplier<Future<T>>> conditionMap = new LinkedHashMap<>();
 
         IfStatement(Future<Boolean> condFu, Supplier<Future<T>> code) {
             conditionMap.put(() -> condFu, code);
+        }
+
+        public IfElseif elseif(boolean condVal) {
+            return elseif(() -> F.unit(condVal));
         }
 
         public IfElseif elseif(@NotNull Supplier<Future<Boolean>> condFu) {
@@ -98,6 +103,7 @@ public class If {
             return fu;
         }
 
+        @Override
         public <U> Monad<U> compose(@NotNull Function<T, Future<U>> f) {
             if (f == null)
                 throw new NullPointerException();
@@ -106,16 +112,18 @@ public class If {
             }).compose(f);
         }
 
+        @Override
         public <U> Monad<U> map(@NotNull Function<T, U> f) {
             if (f == null)
                 throw new NullPointerException();
             return compose(t -> F.unit(f.apply(t)));
         }
 
-        public void setHandler(@NotNull Handler<AsyncResult<T>> handler) {
+        @Override
+        public Monad<T> setHandler(@NotNull Handler<AsyncResult<T>> handler) {
             if (handler == null)
                 throw new NullPointerException();
-            compose(Future::succeededFuture).setHandler(handler);
+            return compose(Future::succeededFuture).setHandler(handler);
         }
     }
 }
